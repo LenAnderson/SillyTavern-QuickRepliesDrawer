@@ -1,4 +1,5 @@
 const init = ()=>{
+    let colorPickers;
     let toggle;
     const drawer = document.createElement('div'); {
         drawer.classList.add('drawer');
@@ -24,6 +25,12 @@ const init = ()=>{
                 content.append(headWrap);
             }
             const qrContainer = document.querySelector('#qr_container');
+            colorPickers = [...qrContainer.querySelectorAll('toolcool-color-picker')]
+                .map(it=>({
+                    picker: it,
+                    color: it.color.originalInput,
+                }))
+            ;
             qrContainer.querySelector('.inline-drawer-toggle').dispatchEvent(new Event('click', { bubbles:true }));
             content.append(qrContainer);
             drawer.append(content);
@@ -32,5 +39,8 @@ const init = ()=>{
     const anchor = document.querySelector('#extensions-settings-button');
     anchor.insertAdjacentElement('afterend', drawer);
     $(toggle).on('click', $._data(anchor.querySelector('.drawer-toggle'), 'events').click[0].handler);
+    for (const { picker, color } of colorPickers) {
+        picker.color = color;
+    }
 };
 init();
