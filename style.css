@@ -1,3 +1,6 @@
-#qr_container .inline-drawer-icon {
+#qr--settings > .inline-drawer {
+  display: contents;
+}
+#qr--settings .inline-drawer-toggle {
   display: none;
 }

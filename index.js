@@ -14,10 +14,15 @@ const init = ()=>{
         }
         const content = document.createElement('div'); {
             content.classList.add('drawer-content');
-            // const title = document.createElement('h3'); {
-            //     title.textContent = 'Quick Replies';
-            //     content.append(title);
-            // }
+            const headWrap = document.createElement('div'); {
+                headWrap.classList.add('flex-container', 'alignItemsBaseline');
+                const title = document.createElement('h3'); {
+                    title.classList.add('margin0', 'flex1', 'flex-container', 'alignItemsBaseline');
+                    title.textContent = 'Quick Replies';
+                    headWrap.append(title);
+                }
+                content.append(headWrap);
+            }
             const qrContainer = document.querySelector('#qr_container');
             qrContainer.querySelector('.inline-drawer-toggle').dispatchEvent(new Event('click', { bubbles:true }));
             content.append(qrContainer);
