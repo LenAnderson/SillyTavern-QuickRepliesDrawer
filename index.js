@@ -5,7 +5,7 @@ const init = ()=>{
         toggle = document.createElement('div'); {
             toggle.classList.add('drawer-toggle');
             const icon = document.createElement('div'); {
-                icon.classList.add('drawer-icon');
+                icon.classList.add('drawer-icon', 'closedIcon');
                 icon.classList.add('fa-solid', 'fa-fw', 'fa-code');
                 icon.title = 'Quick Replies';
                 toggle.append(icon);
