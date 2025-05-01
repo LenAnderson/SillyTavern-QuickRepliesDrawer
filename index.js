@@ -1,46 +1,42 @@
-const init = ()=>{
-    let colorPickers;
-    let toggle;
-    const drawer = document.createElement('div'); {
-        drawer.classList.add('drawer');
-        toggle = document.createElement('div'); {
-            toggle.classList.add('drawer-toggle');
-            const icon = document.createElement('div'); {
-                icon.classList.add('drawer-icon', 'closedIcon');
-                icon.classList.add('fa-solid', 'fa-fw', 'fa-code');
-                icon.title = 'Quick Replies';
-                toggle.append(icon);
-            }
-            drawer.append(toggle);
+import { getRequestHeaders } from '../../../../script.js';
+import { extension_settings } from '../../../extensions.js';
+import { getCheckboxList } from './src/helper/autoExecHelper.js';
+import { hookQuickReply } from './src/helper/hookQuickReply.js';
+import { QuickRepliesDrawer } from './src/QuickRepliesDrawer.js';
+
+const watchCss = async()=>{
+    // watch CSS for changes
+    const style = document.createElement('style');
+    document.body.append(style);
+    const path = [
+        '~',
+        'extensions',
+        'SillyTavern-QuickRepliesDrawer-v2',
+        'style.css',
+    ].join('/');
+    while (true) {
+        const watchResponse = await fetch('/api/plugins/files/watch', {
+            method: 'POST',
+            headers: getRequestHeaders(),
+            body: JSON.stringify({
+                path,
+                interval: 500,
+            }),
+        });
+        if (!watchResponse.ok) {
+            alert('something went wrong');
+            break;
         }
-        const content = document.createElement('div'); {
-            content.classList.add('drawer-content');
-            const headWrap = document.createElement('div'); {
-                headWrap.classList.add('flex-container', 'alignItemsBaseline');
-                const title = document.createElement('h3'); {
-                    title.classList.add('margin0', 'flex1', 'flex-container', 'alignItemsBaseline');
-                    title.textContent = 'Quick Replies';
-                    headWrap.append(title);
-                }
-                content.append(headWrap);
-            }
-            const qrContainer = document.querySelector('#qr_container');
-            colorPickers = [...qrContainer.querySelectorAll('toolcool-color-picker')]
-                .map(it=>({
-                    picker: it,
-                    color: it.color.originalInput,
-                }))
-            ;
-            qrContainer.querySelector('.inline-drawer-toggle').dispatchEvent(new Event('click', { bubbles:true }));
-            content.append(qrContainer);
-            drawer.append(content);
-        }
-    }
-    const anchor = document.querySelector('#extensions-settings-button');
-    anchor.insertAdjacentElement('afterend', drawer);
-    $(toggle).on('click', $._data(anchor.querySelector('.drawer-toggle'), 'events').click[0].handler);
-    for (const { picker, color } of colorPickers) {
-        picker.color = color;
+        style.innerHTML = await watchResponse.text();
+        document.querySelector('#third-party_SillyTavern-QuickRepliesDrawer-v2-css')?.remove();
     }
 };
-init();
+
+const init = ()=>{
+    watchCss();
+    hookQuickReply();
+    getCheckboxList();
+    const drawer = new QuickRepliesDrawer();
+    drawer.inject();
+};
+if (!extension_settings.disabledExtensions.includes('third-party/SillyTavern-QuickRepliesDrawer-v2')) init();
