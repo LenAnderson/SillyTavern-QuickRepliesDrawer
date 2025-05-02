@@ -1,14 +1,20 @@
 import { debounce } from '../../../../utils.js';
+import { QuickReplySet } from '../../../quick-reply/src/QuickReplySet.js';
 import { Browser } from './Browser.js';
 import { Editor } from './Editor.js';
 
 /**@typedef {import('../../../quick-reply/src/QuickReply.js').QuickReply} QuickReply */
-/**@typedef {import('../../../quick-reply/src/QuickReplySet.js').QuickReplySet} QuickReplySet */
+/**@typedef {import('../../../quick-reply/src/QuickReplySet.js').QuickReplySet} ObservableQuickReplySet */
 
 
 export class QuickRepliesDrawer {
     /**@type {Browser} */ browser;
     /**@type {Editor} */ editor;
+
+
+    get isOpen() {
+        return !this.dom.icon.classList.contains('closedIcon');
+    }
 
 
     dom = {
@@ -53,7 +59,7 @@ export class QuickRepliesDrawer {
                     const icon = document.createElement('div'); {
                         this.dom.icon = icon;
                         icon.classList.add('drawer-icon', 'closedIcon');
-                        icon.classList.add('fa-solid', 'fa-fw', 'fa-terminal');
+                        icon.classList.add('fa-solid', 'fa-fw', 'fa-code');
                         icon.title = 'Quick Replies (drwr-v2)';
                         toggle.append(icon);
                     }
@@ -76,6 +82,13 @@ export class QuickRepliesDrawer {
                                     title.classList.add('margin0', 'flex1', 'flex-container', 'alignItemsBaseline');
                                     title.textContent = 'Quick Replies (drwr-v2)';
                                     headWrap.append(title);
+                                }
+                                const showQrBar = document.createElement('div'); {
+                                    showQrBar.classList.add('stqrd--showQrBarToggle');
+                                    showQrBar.classList.add('menu_button');
+                                    showQrBar.classList.add('fa-solid', 'fa-fw', 'fa-chevron-up');
+                                    showQrBar.addEventListener('click', ()=>content.classList.toggle('stqrd--showQrBar'));
+                                    headWrap.append(showQrBar);
                                 }
                                 panel.append(headWrap);
                             }
@@ -205,7 +218,11 @@ export class QuickRepliesDrawer {
             this.dom.body.append(await editor.render());
             this.open();
         });
-        this.dom.body.append(await editor.render());
+        if (this.isOpen) {
+            this.dom.body.append(await editor.render());
+        } else {
+            document.body.append(await editor.render());
+        }
     }
     closeEditor() {
         if (this.editor) {
@@ -215,7 +232,7 @@ export class QuickRepliesDrawer {
     }
 
     /**
-     * @param {QuickReplySet} qrs
+     * @param {ObservableQuickReplySet} qrs
      */
     openQrsSettings(qrs) {
         const sel = this.dom.qrSettings.qrs;
@@ -232,13 +249,25 @@ export class QuickRepliesDrawer {
 
 
     open() {
-        if (this.dom.icon.classList.contains('closedIcon')) {
+        if (!this.isOpen) {
             this.dom.toggle.click();
         }
     }
     close() {
-        if (!this.dom.icon.classList.contains('closedIcon')) {
+        if (this.isOpen) {
             this.dom.toggle.click();
+        }
+    }
+
+    openQuickReplySet() {
+        //TODO open QR Set by name or QRS
+    }
+    async openQuickReply(qr) {
+        const qrs = QuickReplySet.list.find(it=>it.qrList.includes(qr));
+        //TODO not pretty
+        this.browser.qrsItemList.find(it=>it.qrs == qrs).qrItemList.find(it=>it.qr == qr).openEditor();
+        if (!this.isOpen) {
+            document.body.append(await this.editor.render());
         }
     }
 }

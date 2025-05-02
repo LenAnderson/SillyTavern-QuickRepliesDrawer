@@ -4,9 +4,41 @@
 
 
 
+body {
+    --stqrd--color-bgPrimary: var(--lat--color-bgPrimary, var(--SmartThemeBlurTintColor));
+    --stqrd--color-bgSecondary: var(--lat--color-bgSecondary, var(--SmartThemeChatTintColor));
+    --stqrd--color-border: var(--lat--color-border, var(--SmartThemeBorderColor));
+    --stqrd--color-borderSecondary: var(--lat--color-borderSecondary, color-mix(in srgb, var(--lat--color-border), white 10%));
+
+    --stqrd--color-text: var(--lat--color-text, var(--SmartThemeBodyColor));
+    --stqrd--color-textString: var(--lat--color-textString, var(--SmartThemeQuoteColor));
+    --stqrd--color-textEm: var(--lat--color-textEm, var(--SmartThemeEmColor));
+
+    --stqrd--color-accent: var(--lat--color-accent, rgb(0 120 212));
+
+    --stqrd--color-btnBg: var(--lat--color-btnBg, rgb(0 120 212));
+    --stqrd--color-btnBgHover: var(--lat--color-btnBgHover, color-mix(in srgb, var(--lat--color-btnBg), rgb(20 20 22) 10%));
+    --stqrd--color-btnBorder: var(--lat--color-btnBorder, rgb(255 255 255 / 0.071));
+    --stqrd--color-btnBorderHover: var(--lat--color-btnBorderHover, rgb(255 255 255 / 0.071));
+    --stqrd--color-btnText: var(--lat--color-btnText, rgb(255 255 255));
+    --stqrd--color-btnBgSecondary: var(--lat--color-btnBgSecondary, rgb(49 49 49));
+    --stqrd--color-btnTextSecondary: var(--lat--color-btnTextSecondary, var(--lat--color-text));
+
+    --stqrd--color-toastSuccess: var(--lat--color-toastSuccess, #51A351);
+    --stqrd--color-toastError: var(--lat--color-toastError, #BD362F);
+    --stqrd--color-toastInfo: var(--lat--color-toastInfo, #2F96B4);
+    --stqrd--color-toastWarning: var(--lat--color-toastWarning, #F89406);
+}
+
+
+
+
 #stqrd--drawer-v2 {
     --drawerPadding: 5px;
     padding: 0;
+    &.stqrd--showQrBar {
+        bottom: 100px !important;
+    }
 
     .stqrd--layout {
         display: flex;
@@ -24,8 +56,8 @@
         display: flex;
         flex-direction: column;
 
-        background-color: var(--lat--color-bgPrimary);
-        border-right: 1px solid var(--lat--color-border);
+        background-color: var(--stqrd--color-bgPrimary);
+        border-right: 1px solid var(--stqrd--color-border);
         width: calc(1px * var(--width));
     }
 
@@ -35,6 +67,12 @@
         padding: 10px var(--drawerPadding) 0 var(--drawerPadding);
         text-overflow: ellipsis;
         white-space: nowrap;
+
+        + .stqrd--showQrBarToggle {
+            align-self: center;
+            margin-top: 10px;
+            margin-right: var(--drawerPadding);
+        }
     }
 
     .stqrd--browser {
@@ -82,8 +120,9 @@
         .stqrd--head {
             display: flex;
             gap: 0.5em;
+            align-items: baseline;
 
-            background-color: var(--lat--color-bgPrimary);
+            background-color: var(--stqrd--color-bgPrimary);
             border: 1px solid transparent;
             box-shadow: 0 4px 4px rgb(0 0 0 / 0.25);
             padding: 2px var(--drawerPadding);
@@ -91,12 +130,15 @@
             top: 0;
             z-index: 1;
             &:is(.stqrd--isActive *) {
-                background-color: color-mix(in srgb, var(--lat--color-bgPrimary), var(--lat--color-accent) 25%);
-                border-color: var(--lat--color-accent);
+                background-color: color-mix(in srgb, var(--stqrd--color-bgPrimary), var(--stqrd--color-accent) 25%);
+                border-color: var(--stqrd--color-accent);
                 opacity: 1;
             }
             &:is(.stqrd--qrsItem:has(.stqrd--qrItem.stqrd--isActive) *) {
-                background-color: color-mix(in srgb, var(--lat--color-bgPrimary), var(--lat--color-accent) 25%);
+                background-color: color-mix(in srgb, var(--stqrd--color-bgPrimary), var(--stqrd--color-accent) 25%);
+            }
+            &.stqrd--isDragTarget {
+                border-bottom-color: var(--stqrd--color-accent);
             }
             .stqrd--title {
                 flex: 1 1 auto;
@@ -129,7 +171,7 @@
             .stqrd--global, .stqrd--chat {
                 opacity: 0.25;
                 &.stqrd--isActive {
-                    color: var(--lat--color-accent);
+                    color: var(--stqrd--color-accent);
                     opacity: 0.75;
                     &:hover {
                         opacity: 1;
@@ -154,12 +196,15 @@
         padding: 0.125em var(--drawerPadding) 0.125em 1em;
         transform: 200ms;
         &.stqrd--isActive {
-            background-color: rgb(from var(--lat--color-accent) r g b / 0.25);
-            border-color: var(--lat--color-accent);
+            background-color: rgb(from var(--stqrd--color-accent) r g b / 0.25);
+            border-color: var(--stqrd--color-accent);
             opacity: 1;
             &:hover {
-                background-color: rgb(from var(--lat--color-accent) r g b / 0.5);;
+                background-color: rgb(from var(--stqrd--color-accent) r g b / 0.5);;
             }
+        }
+        &.stqrd--isDragTarget {
+            border-bottom-color: var(--stqrd--color-accent);
         }
         &:hover {
             background-color: rgb(255 255 255 / 0.125);
@@ -204,12 +249,12 @@
         width: 5px;
         z-index: 1;
         &:hover {
-            background-color: var(--lat--color-accent);
+            background-color: var(--stqrd--color-accent);
         }
         &:not(:is(.stqrd--showBrowser *)) {
-            background-color: rgb(from var(--lat--color-accent) r g b / 0.5);
+            background-color: rgb(from var(--stqrd--color-accent) r g b / 0.5);
             &:hover {
-                background-color: var(--lat--color-accent);
+                background-color: var(--stqrd--color-accent);
             }
         }
     }
@@ -220,7 +265,7 @@
     .stqrd--body {
         flex: 1 1 auto;
 
-        background-color: var(--lat--color-bgSecondary);
+        background-color: var(--stqrd--color-bgSecondary);
 
         &:has(.stqrd--editorPanel) {
             #qr--settings {
@@ -271,12 +316,14 @@
             display: grid;
             grid-template-rows: 0fr 1fr;
 
+            height: 100%;
+
             :has(~ #qr--editor) {
                 display: none;
             }
         }
 
-        > .qr--head,
+        #qr--editor > .qr--head,
         #qr--set-qrList,
         .qr--set-qrListActions
         {
@@ -295,7 +342,7 @@
         align-items: baseline;
         justify-content: space-between;
 
-        border-bottom: 1px solid var(--lat--color-border);
+        border-bottom: 1px solid var(--stqrd--color-border);
         box-shadow: 0 4px 4px rgb(0 0 0 / 0.25);
         font-size: smaller;
         padding: 1px 5px 1px 5px;
@@ -351,8 +398,8 @@
     height: 100%;
 
     &:is(body > *) {
-        background-color: var(--lat--color-bgPrimary);
-        border-left: 1px solid var(--lat--color-borderSecondary);
+        background-color: var(--stqrd--color-bgPrimary);
+        border-left: 1px solid var(--stqrd--color-borderSecondary);
         position: absolute;
         right: 0;
         top: 0;
@@ -397,7 +444,7 @@
         }
 
         .language-stscript {
-            color: var(--lat--color-text);
+            color: var(--stqrd--color-text);
         }
         .token {
             &.comment {
@@ -478,9 +525,9 @@
         grid-column-start: 2;
         grid-column-end: 3;
 
-        background-color: var(--lat--color-bgPrimary);
-        border-left: 1px solid var(--lat--color-border);
-        border-bottom: 2px solid var(--lat--color-accent);
+        background-color: var(--stqrd--color-bgPrimary);
+        border-left: 1px solid var(--stqrd--color-border);
+        border-bottom: 2px solid var(--stqrd--color-accent);
         display: none;
         overflow-x: clip;
         overflow-y: scroll;
@@ -492,12 +539,50 @@
         }
 
         .stqrd--block {
-            &:not(:last-child) {
-                border-bottom: 1px solid var(--lat--color-border);
-            }
             padding: 0.5em;
+            &:not(:last-child) {
+                border-bottom: 1px solid var(--stqrd--color-border);
+            }
             h4 {
                 margin: 0;
+            }
+        }
+        .stqrd--row {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5em;
+            align-self: stretch;
+            &:not(:last-child) {
+                padding-bottom: 0.5em;
+            }
+            .stqrd--inputWrap {
+                flex: 1 1 auto;
+                display: flex;
+                flex-direction: column;
+                align-self: stretch;
+                gap: 0.125em;
+                .stqrd--text {
+                    flex: 0 0 auto;
+                    font-size: 0.6em;
+                    opacity: 0.75;
+                    transition: 100ms;
+                    &:has(+ :focus-visible, + :hover) {
+                        opacity: 1;
+                    }
+                }
+                .stqrd--input {
+                    margin: auto 0;
+                }
+                .stqrd--icon {
+                    flex: 1 1 auto;
+
+                    &.stqrd--noIcon::after {
+                        content: '...';
+                    }
+                }
+                .stqrd--showLabel {
+                    align-self: center;
+                }
             }
         }
         .stqrd--autoExec {
@@ -528,7 +613,7 @@
         padding: 0.5em;
     }
     .stqrd--runResult {
-        background-color: color-mix(in srgb, var(--lat--color-bgSecondary), var(--lat--color-toastSuccess));
+        background-color: color-mix(in srgb, var(--stqrd--color-bgSecondary), var(--stqrd--color-toastSuccess));
         font-family: var(--monoFontFamily);
         white-space: pre-wrap;
         &:is(.stqrd--hasResult *) {
@@ -541,7 +626,7 @@
         }
     }
     .stqrd--runError {
-        background-color: color-mix(in srgb, var(--lat--color-bgSecondary), var(--lat--color-toastError));
+        background-color: color-mix(in srgb, var(--stqrd--color-bgSecondary), var(--stqrd--color-toastError));
         &:is(.stqrd--hasError *) {
             display: block;
         }
@@ -556,8 +641,8 @@
         display: grid;
         grid-template-columns: max-content 1fr max-content;
 
-        background-color: var(--lat--color-bgPrimary);
-        border-top: 1px solid var(--lat--color-border);
+        background-color: var(--stqrd--color-bgPrimary);
+        border-top: 1px solid var(--stqrd--color-border);
         font-size: 0.75em;
         // padding: 1px 0;
         container-name: stqrd--footer;
@@ -651,7 +736,7 @@
                     content: '';
                     position: absolute;
                     inset: 3px;
-                    background-color: var(--lat--color-text);
+                    background-color: var(--stqrd--color-text);
                     mask-size: contain;
                     mask-position: center;
                     mask-repeat: no-repeat;
@@ -689,7 +774,7 @@
             padding: 3px 4px;
             transition: 200ms;
             &.stqrd--isActive {
-                color: var(--lat--color-accent);
+                color: var(--stqrd--color-accent);
                 opacity: 0.75;
             }
             &:hover {
@@ -716,7 +801,7 @@
             }
         }
         .stqrd--optionsToggle:is(.stqrd--showOptions *) {
-            background-color: var(--lat--color-accent);
+            background-color: var(--stqrd--color-accent);
             margin-top: -2px;
             opacity: 1;
             padding-top: 5px;
@@ -733,22 +818,25 @@
 	inset: 0;
 	z-index: 30000;
 	.stqrd--menu {
+        --offset: 0;
+
 		position: fixed;
 		position-anchor: --stqrd--ctxAnchor;
 		position-area: bottom right;
 		position-try-fallbacks: flip-block, flip-inline;
+        left: calc(1px * var(--offset));
 
 		margin-top: -1lh;
 		filter: drop-shadow(1px 1px 2px var(--black50a));
 		z-index: 30000;
 		overflow-x: clip;
 		overflow-y: auto;
-        border: 1px solid var(--lat--color-borderSecondary);
+        border: 1px solid var(--stqrd--color-borderSecondary);
 		border-radius: 4px;
-        color: var(--lat--color-btnText);
+        color: var(--stqrd--color-btnText);
 		display: flex;
 		flex-direction: column;
-		background-color: var(--lat--color-bgSecondary, var(--SmartThemeBlurTintColor));
+		background-color: var(--stqrd--color-bgSecondary, var(--SmartThemeBlurTintColor));
 
 		.stqrd--item {
 			opacity: 0.5;

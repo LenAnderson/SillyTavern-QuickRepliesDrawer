@@ -17,16 +17,28 @@ export const QR_EVENT = {
     PROP_CHANGED: 'prop_changed',
     /** ... */
     ARRAY_CHANGED: 'array_changed',
+    /** ... */
+    EDITOR: 'editor',
+    /** ... */
+    DELETE: 'delete',
 };
 /** @readonly */
 /** @enum {string} */
 export const QRS_EVENT = {
+    /** ... */
+    DELETE: 'delete',
     /** ... */
     PROP_CHANGED: 'prop_changed',
     /** ... */
     GLOBAL_STATE: 'global_state',
     /** ... */
     CHAT_STATE: 'chat_state',
+};
+/** @readonly */
+/** @enum {string} */
+export const QRS_STATIC_EVENT = {
+    /** ... */
+    CREATE: 'create',
 };
 
 
@@ -81,6 +93,19 @@ const createObservableArray = (arr, callback)=>{
     };
 
     return new Proxy(arr, handler);
+};
+
+const createEmittingMethod = (prototype, methodName, event) => {
+    const originalMethod = Object.getOwnPropertyDescriptor(prototype, methodName);
+    Object.defineProperty(prototype, methodName, {
+        value: function(...args) {
+            const returnValue = originalMethod.value.call(this, ...args);
+            this.eventSource.emit(event, this);
+            return returnValue;
+        },
+        configurable: true,
+        enumerable: true,
+    });
 };
 
 const migrateQuickReplySet = (qrs)=>{
@@ -146,6 +171,19 @@ const migrateQuickReplyProperties = (qr)=>{
 
 export const hookQuickReply = ()=>{
     // add event emitters
+    Object.defineProperty(QuickReplySet, 'staticEventSource', {
+        get() {
+            if (!this._eventSource) {
+                this._eventSource = new EventEmitter();
+            }
+            return this._eventSource;
+        },
+        set(value) {
+            this._eventSource = value;
+        },
+        configurable: true,
+        enumerable: true,
+    });
     Object.defineProperty(QuickReplySet.prototype, 'eventSource', {
         get() {
             if (!this._eventSource) {
@@ -226,8 +264,9 @@ export const hookQuickReply = ()=>{
 
     // automatically migrate instances in new QR Sets
     QuickReplySet.list = createObservableArray(QuickReplySet.list, ()=>{
-        for (const qrs of QuickReplySet.list.filter(it=>!it.isObservable)) {
+        for (const qrs of /**@type {ObservableQuickReplySet[]}*/(QuickReplySet.list.filter(it=>!it.isObservable))) {
             migrateQuickReplySet(qrs);
+            QuickReplySet.staticEventSource.emit(QRS_STATIC_EVENT.CREATE, qrs);
         }
     });
 
@@ -264,14 +303,30 @@ export const hookQuickReply = ()=>{
     // watch changes to existing QR Set links
     const originalUpdate = Object.getOwnPropertyDescriptor(QuickReplySetLink.prototype, 'update');
     Object.defineProperty(QuickReplySetLink.prototype, 'update', {
-        value: function() {
+        value: function(...args) {
             for (const qrs of /**@type {ObservableQuickReplySet[]}*/(QuickReplySet.list)) {
                 qrs.eventSource.emit(QRS_EVENT.GLOBAL_STATE);
                 qrs.eventSource.emit(QRS_EVENT.CHAT_STATE);
             }
-            return originalUpdate.value();
+            return originalUpdate.value.call(this, ...args);
         },
         configurable: true,
         enumerable: true,
     });
+
+    // showEditor
+    const originalShowEditor = Object.getOwnPropertyDescriptor(QuickReply.prototype, 'showEditor');
+    Object.defineProperty(QuickReply.prototype, 'showEditor', {
+        /**@this {ObservableQuickReply} */
+        value: function(forceVanilla = false) {
+            if (forceVanilla) return originalShowEditor.value.call(this);
+            this.eventSource.emit(QR_EVENT.EDITOR, this);
+        },
+        configurable: true,
+        enumerable: true,
+    });
+
+    // delete
+    createEmittingMethod(QuickReply.prototype, 'delete', QR_EVENT.DELETE);
+    createEmittingMethod(QuickReplySet.prototype, 'delete', QRS_EVENT.DELETE);
 };
