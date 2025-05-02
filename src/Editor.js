@@ -653,6 +653,9 @@ export class Editor {
             const ac = await setSlashCommandAutoComplete(this.editor.textarea, true);
             this.editor.textarea.addEventListener('keydown', (evt)=>{
                 if (evt.ctrlKey && evt.key == 'Enter') {
+                    evt.stopPropagation();
+                    evt.stopImmediatePropagation();
+                    evt.preventDefault();
                     this.run();
                 }
             });
