@@ -4,7 +4,7 @@
 
 
 
-body {
+body { // colors
     --stqrd--color-bgPrimary: var(--lat--color-bgPrimary, var(--SmartThemeBlurTintColor));
     --stqrd--color-bgSecondary: var(--lat--color-bgSecondary, var(--SmartThemeChatTintColor));
     --stqrd--color-border: var(--lat--color-border, var(--SmartThemeBorderColor));
@@ -36,6 +36,7 @@ body {
 #stqrd--drawer-v2 {
     --drawerPadding: 5px;
     padding: 0;
+    height: 100vh;
     &.stqrd--showQrBar {
         bottom: 100px !important;
     }
@@ -44,6 +45,7 @@ body {
         display: flex;
 
         height: 100%;
+        overflow: hidden;
     }
 
 

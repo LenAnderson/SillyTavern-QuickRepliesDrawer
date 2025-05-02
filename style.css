@@ -26,6 +26,7 @@ body {
 #stqrd--drawer-v2 {
   --drawerPadding: 5px;
   padding: 0;
+  height: 100vh;
 }
 #stqrd--drawer-v2.stqrd--showQrBar {
   bottom: 100px !important;
@@ -33,6 +34,7 @@ body {
 #stqrd--drawer-v2 .stqrd--layout {
   display: flex;
   height: 100%;
+  overflow: hidden;
 }
 #stqrd--drawer-v2 .stqrd--panel {
   --width: 200;
