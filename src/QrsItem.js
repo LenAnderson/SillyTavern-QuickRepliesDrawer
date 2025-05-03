@@ -1,6 +1,7 @@
 /**@typedef {import('./helper/hookQuickReply.js').ObservableQuickReplySet} QuickReplySet */
 
 import { EventEmitter } from '../../../../../lib/eventemitter.js';
+import { event_types, eventSource as globalEventSource } from '../../../../../script.js';
 import { delay } from '../../../../utils.js';
 import { quickReplyApi } from '../../../quick-reply/index.js';
 import { QRS_EVENT } from './helper/hookQuickReply.js';
@@ -78,6 +79,8 @@ export class QrsItem {
         qrs.eventSource.on(QRS_EVENT.PROP_CHANGED, (qrs, evt)=>this.handlePropChange(evt));
         qrs.eventSource.on(QRS_EVENT.GLOBAL_STATE, (qrs)=>this.handleGlobalStateChange());
         qrs.eventSource.on(QRS_EVENT.CHAT_STATE, (qrs)=>this.handleChatStateChange());
+        globalEventSource.on(event_types.CHAT_CHANGED, ()=>this.handleChatStateChange());
+        globalEventSource.once(event_types.APP_READY, ()=>this.handleChatStateChange());
     }
 
 
@@ -145,10 +148,12 @@ export class QrsItem {
                         if (this.isActiveChat) chat.classList.add('stqrd--isActive');
                         chat.classList.add('fa-solid', 'fa-fw', 'fa-comments');
                         chat.addEventListener('click', ()=>{
-                            const is = this.isActiveChat;
-                            if (!is) quickReplyApi.addChatSet(this.qrs.name);
-                            else quickReplyApi.removeChatSet(this.qrs.name);
-                            chat.classList[is ? 'remove' : 'add']('stqrd--isActive');
+                            if (quickReplyApi.settings.chatConfig) {
+                                const is = this.isActiveChat;
+                                if (!is) quickReplyApi.addChatSet(this.qrs.name);
+                                else quickReplyApi.removeChatSet(this.qrs.name);
+                                chat.classList[is ? 'remove' : 'add']('stqrd--isActive');
+                            }
                         });
                         actions.append(chat);
                     }
