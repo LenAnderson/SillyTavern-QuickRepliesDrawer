@@ -315,6 +315,8 @@ body {
   display: grid;
   grid-template-columns: 1fr 0fr;
   grid-template-rows: 0fr 1fr 0fr 0fr;
+  container-name: stqrd--editorPanel;
+  container-type: size;
   height: 100%;
 }
 .stqrd--editorPanel:is(body > *) {
@@ -574,6 +576,9 @@ body {
 .stqrd--editorPanel .stqrd--footer .stqrd--debugControls:hover {
   background-color: rgba(255, 255, 255, 0.125);
 }
+.stqrd--editorPanel .stqrd--footer .stqrd--debugControls {
+  display: none;
+}
 .stqrd--editorPanel .stqrd--footer .stqrd--button {
   cursor: pointer;
   opacity: 0.75;
@@ -705,6 +710,9 @@ body {
 .stqrd--editorPanel.stqrd--isDebugging .stqrd--playbackControls .stqrd--button:hover {
   opacity: 1;
 }
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debugControls {
+  display: flex;
+}
 .stqrd--editorPanel.stqrd--isDebugging .stqrd--resizeHandle:has(+ .stqrd--hideDebugger *) {
   background-color: rgb(from var(--stqrd--color-accent) r g b / 0.5);
 }
@@ -743,7 +751,7 @@ body {
   flex: 1 1 auto;
   overflow-x: auto;
   overflow-y: scroll;
-  max-width: 90vw;
+  max-width: min(90vw, 90cqw);
   width: var(--width);
 }
 .stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--block {

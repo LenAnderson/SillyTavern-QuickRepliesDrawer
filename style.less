@@ -387,6 +387,8 @@ body { // colors
     grid-template-columns: 1fr 0fr;
     grid-template-rows: 0fr 1fr 0fr 0fr;
 
+    container-name: stqrd--editorPanel;
+    container-type: size;
     height: 100%;
 
     &:is(body > *) {
@@ -704,6 +706,9 @@ body { // colors
                 background-color: rgb(255 255 255 / 0.125);
             }
         }
+        .stqrd--debugControls {
+            display: none;
+        }
         .stqrd--button {
             cursor: pointer;
             opacity: 0.75;
@@ -844,6 +849,9 @@ body { // colors
             opacity: 1;
         }
     }
+    .stqrd--debugControls {
+        display: flex;
+    }
 
     .stqrd--resizeHandle {
         &:has(+ .stqrd--hideDebugger *) {
@@ -892,7 +900,7 @@ body { // colors
 
             overflow-x: auto;
             overflow-y: scroll;
-            max-width: 90vw;
+            max-width: min(90vw, 90cqw);
             width: var(--width);
         }
 
