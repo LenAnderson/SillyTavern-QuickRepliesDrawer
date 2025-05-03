@@ -2,8 +2,11 @@ import { EventEmitter } from '../../../../../lib/eventemitter.js';
 import { AutoComplete } from '../../../../autocomplete/AutoComplete.js';
 import { setSlashCommandAutoComplete } from '../../../../slash-commands.js';
 import { SlashCommandAbortController } from '../../../../slash-commands/SlashCommandAbortController.js';
+import { SlashCommandClosure } from '../../../../slash-commands/SlashCommandClosure.js';
 import { SlashCommandDebugController } from '../../../../slash-commands/SlashCommandDebugController.js';
+import { SlashCommandExecutor } from '../../../../slash-commands/SlashCommandExecutor.js';
 import { SlashCommandParserError } from '../../../../slash-commands/SlashCommandParserError.js';
+import { SlashCommandScope } from '../../../../slash-commands/SlashCommandScope.js';
 import { accountStorage } from '../../../../util/AccountStorage.js';
 import { debounce, showFontAwesomePicker } from '../../../../utils.js';
 import { QuickReplySet } from '../../../quick-reply/src/QuickReplySet.js';
@@ -64,6 +67,8 @@ export class Editor {
             showLabel: undefined,
             /**@type {HTMLInputElement} */
             title: undefined,
+            /**@type {HTMLInputElement} */
+            automationId: undefined,
         },
         /**@type {HTMLElement} */
         runResult: undefined,
@@ -71,6 +76,14 @@ export class Editor {
         runError: undefined,
         /**@type {{[id:string]:{ toggle:HTMLElement, checkbox:HTMLInputElement}}} */
         auto: {},
+        debugger: {
+            /**@type {HTMLElement} */
+            panel: undefined,
+            /**@type {HTMLElement} */
+            scope: undefined,
+            /**@type {HTMLElement} */
+            callStack: undefined,
+        },
     };
 
 
@@ -227,7 +240,7 @@ export class Editor {
                                                 inp.classList.add('stqrd--input');
                                                 inp.classList.add('text_pole');
                                                 inp.value = this.qr.label;
-                                                inp.placeholder = 'Label';
+                                                inp.placeholder = 'Button Label Text';
                                                 inp.addEventListener('input', ()=>{
                                                     this.qr.updateLabel(inp.value);
                                                 });
@@ -279,7 +292,7 @@ export class Editor {
                                                 inp.classList.add('stqrd--input');
                                                 inp.classList.add('text_pole');
                                                 inp.value = this.qr.title;
-                                                inp.placeholder = 'Title';
+                                                inp.placeholder = 'Title / Tooltip';
                                                 inp.addEventListener('input', ()=>{
                                                     this.qr.updateTitle(inp.value);
                                                 });
@@ -294,12 +307,34 @@ export class Editor {
                             options.append(block);
                         }
                     }
-                    for (const topic of ['Context Menu']) {
+                    { // context menu
                         const block = document.createElement('div'); {
                             block.classList.add('stqrd--block');
                             const title = document.createElement('h4'); {
-                                title.textContent = topic;
+                                title.textContent = 'Context Menu';
                                 block.append(title);
+                            }
+                            { // btn row
+                                const row = document.createElement('div'); {
+                                    row.classList.add('stqrd--row');
+                                    { // btn
+                                        const btn = document.createElement('div'); {
+                                            btn.classList.add('menu_button');
+                                            btn.classList.add('menu_button_icon');
+                                            const i = document.createElement('div'); {
+                                                i.classList.add('fa-solid', 'fa-pen-to-square');
+                                                btn.append(i);
+                                            }
+                                            const t = document.createElement('div'); {
+                                                t.textContent = 'Open Vanilla Editor';
+                                                btn.append(t);
+                                            }
+                                            btn.addEventListener('click', ()=>this.qr.showEditor(true));
+                                            row.append(btn);
+                                        }
+                                    }
+                                    block.append(row);
+                                }
                             }
                             options.append(block);
                         }
@@ -339,10 +374,116 @@ export class Editor {
                                     block.append(toggle);
                                 }
                             }
+                            { // automation id row
+                                const row = document.createElement('div'); {
+                                    row.classList.add('stqrd--row');
+                                    { // automation id
+                                        const inputWrap = document.createElement('label'); {
+                                            inputWrap.classList.add('stqrd--inputWrap');
+                                            const lbl = document.createElement('div'); {
+                                                lbl.classList.add('stqrd--text');
+                                                lbl.textContent = 'Automation ID';
+                                                inputWrap.append(lbl);
+                                            }
+                                            const inp = document.createElement('input'); {
+                                                this.dom.options.automationId = inp;
+                                                inp.classList.add('stqrd--label');
+                                                inp.classList.add('stqrd--input');
+                                                inp.classList.add('text_pole');
+                                                inp.value = this.qr.automationId;
+                                                inp.placeholder = '( None )';
+                                                inp.addEventListener('input', ()=>{
+                                                    this.qr.automationId = inp.value;
+                                                    this.qr.updateContext();
+                                                });
+                                                inputWrap.append(inp);
+                                            }
+                                            row.append(inputWrap);
+                                        }
+                                    }
+                                    block.append(row);
+                                }
+                            }
                             options.append(block);
                         }
                     }
                     root.append(options);
+                }
+                const debuggerWrap = document.createElement('div'); {
+                    debuggerWrap.classList.add('stqrd--debuggerWrap');
+                    const resizeHandle = document.createElement('div'); {
+                        resizeHandle.classList.add('stqrd--resizeHandle');
+                        let isResizing = false;
+                        resizeHandle.addEventListener('pointerdown', (evt)=>{
+                            if (isResizing) return;
+                            isResizing = true;
+                            evt.preventDefault();
+                            let resizeStart = evt.x;
+                            let wStart = this.dom.debugger.panel.offsetWidth;
+                            let wEnd;
+                            const dragListener = /**@type {(evt:PointerEvent)=>any} */(debounce((evt)=>{
+                                evt.preventDefault();
+                                wEnd = wStart - (evt.x - resizeStart);
+                                this.dom.debugger.panel.style.setProperty('--width', `${wEnd}px`);
+                            }, 5));
+                            window.addEventListener('pointerup', ()=>{
+                                window.removeEventListener('pointermove', dragListener);
+                                isResizing = false;
+                                if (!wEnd || wEnd <= 0) {
+                                    const is = content.classList.toggle('stqrd--hideDebugger');
+                                    if (is) {
+                                        this.dom.debugger.panel.style.setProperty('--width', '0');
+                                    } else {
+                                        this.dom.debugger.panel.style.setProperty('--width', `${localStorage.getItem('stqrd--debugger-panelWidth')}px`);
+                                    }
+                                } else if (wEnd > 0) {
+                                    content.classList.remove('stqrd--hideDebugger');
+                                    localStorage.setItem('stqrd--debugger-panelWidth', wEnd.toString());
+                                }
+                            }, { once:true });
+                            window.addEventListener('pointermove', dragListener);
+                        });
+                        debuggerWrap.append(resizeHandle);
+                    }
+                    const content = document.createElement('div'); {
+                        this.dom.debugger.panel = content;
+                        content.classList.add('stqrd--content');
+                        content.style.setProperty('--width', `${localStorage.getItem('stqrd--debugger-panelWidth')}px`);
+                        { // scope
+                            const block = document.createElement('div'); {
+                                block.classList.add('stqrd--block');
+                                const title = document.createElement('h4'); {
+                                    title.textContent = 'Scope';
+                                    block.append(title);
+                                }
+                                const blockContent = document.createElement('div'); {
+                                    this.dom.debugger.scope = blockContent;
+                                    blockContent.classList.add('stqrd--blockContent');
+                                    blockContent.classList.add('stqrd--scope');
+                                    block.append(blockContent);
+                                }
+                                content.append(block);
+                            }
+                        }
+                        { // call stack
+                            const block = document.createElement('div'); {
+                                block.classList.add('stqrd--block');
+                                const title = document.createElement('h4'); {
+                                    title.textContent = 'Call Stack';
+                                    block.append(title);
+                                }
+                                const blockContent = document.createElement('div'); {
+                                    this.dom.debugger.callStack = blockContent;
+                                    blockContent.classList.add('stqrd--blockContent');
+                                    blockContent.classList.add('stqrd--callStack');
+                                    block.append(blockContent);
+                                }
+                                content.append(block);
+                            }
+                        }
+                        debuggerWrap.append(content);
+                    }
+                    root.append(debuggerWrap);
                 }
                 const runResult = document.createElement('div'); {
                     this.dom.runResult = runResult;
@@ -457,24 +598,36 @@ export class Editor {
                                 resume.classList.add('stqrd--button');
                                 resume.classList.add('stqrd--resume');
                                 resume.title = 'Resume';
+                                resume.addEventListener('click', ()=>{
+                                    this.qr.debugController?.resume();
+                                });
                                 debugControls.append(resume);
                             }
                             const stepOver = document.createElement('div'); {
                                 stepOver.classList.add('stqrd--button');
                                 stepOver.classList.add('stqrd--stepOver');
                                 stepOver.title = 'Step over';
+                                stepOver.addEventListener('click', ()=>{
+                                    this.qr.debugController?.step();
+                                });
                                 debugControls.append(stepOver);
                             }
                             const stepInto = document.createElement('div'); {
                                 stepInto.classList.add('stqrd--button');
                                 stepInto.classList.add('stqrd--stepInto');
                                 stepInto.title = 'Step into';
+                                stepInto.addEventListener('click', ()=>{
+                                    this.qr.debugController?.stepInto();
+                                });
                                 debugControls.append(stepInto);
                             }
                             const stepOut = document.createElement('div'); {
                                 stepOut.classList.add('stqrd--button');
                                 stepOut.classList.add('stqrd--stepOut');
                                 stepOut.title = 'Step out';
+                                stepOut.addEventListener('click', ()=>{
+                                    this.qr.debugController?.stepOut();
+                                });
                                 debugControls.append(stepOut);
                             }
                             debugContainer.append(debugControls);
@@ -483,20 +636,24 @@ export class Editor {
                     }
                     const actions = document.createElement('div'); {
                         actions.classList.add('stqrd--actions');
-                        for (const auto of await getCheckboxList()) {
-                            const toggle = document.createElement('div'); {
-                                this.dom.auto[auto.id].toggle = toggle;
-                                toggle.classList.add('stqrd--autoExecToggle');
-                                toggle.classList.add(`stqrd--${auto.id.slice(4)}`);
-                                toggle.classList.add('fa-solid', auto.icon);
-                                if (this.qr[auto.id.slice(4)]) toggle.classList.add('stqrd--isActive');
-                                toggle.title = auto.label;
-                                toggle.addEventListener('click', ()=>{
-                                    this.qr[auto.id.slice(4)] = !this.qr[auto.id.slice(4)];
-                                    this.qr.updateContext();
-                                });
-                                actions.append(toggle);
+                        const autoWrap = document.createElement('div'); {
+                            autoWrap.classList.add('stqrd--autoExec');
+                            for (const auto of await getCheckboxList()) {
+                                const toggle = document.createElement('div'); {
+                                    this.dom.auto[auto.id].toggle = toggle;
+                                    toggle.classList.add('stqrd--autoExecToggle');
+                                    toggle.classList.add(`stqrd--${auto.id.slice(4)}`);
+                                    toggle.classList.add('fa-solid', auto.icon);
+                                    if (this.qr[auto.id.slice(4)]) toggle.classList.add('stqrd--isActive');
+                                    toggle.title = auto.label;
+                                    toggle.addEventListener('click', ()=>{
+                                        this.qr[auto.id.slice(4)] = !this.qr[auto.id.slice(4)];
+                                        this.qr.updateContext();
+                                    });
+                                    autoWrap.append(toggle);
+                                }
                             }
+                            actions.append(autoWrap);
                         }
                         const optionsToggle = document.createElement('div'); {
                             optionsToggle.classList.add('stqrd--action');
@@ -657,8 +814,10 @@ export class Editor {
                     evt.stopImmediatePropagation();
                     evt.preventDefault();
                     this.run();
+                } else {
+                    ac.handleKeyDown(evt);
                 }
-            });
+            }, { capture:true });
         }
     }
 
@@ -667,10 +826,217 @@ export class Editor {
     }
 
 
+    getEditorPosition(start, end, message = null) {
+        const scrollRect = this.editor.scrollContainer.getBoundingClientRect();
+        const inputRect = this.editor.textarea.getBoundingClientRect();
+        const style = window.getComputedStyle(this.editor.textarea);
+        if (!this.clone) {
+            this.clone = document.createElement('div');
+            for (const key of style) {
+                this.clone.style[key] = style[key];
+            }
+            this.clone.style.position = 'fixed';
+            this.clone.style.visibility = 'hidden';
+            const mo = new MutationObserver(muts=>{
+                if (muts.find(it=>[...it.removedNodes].includes(this.editor.textarea) || [...it.removedNodes].find(n=>n.contains(this.editor.textarea)))) {
+                    this.clone?.remove();
+                    this.clone = null;
+                }
+            });
+            mo.observe(document.body, { childList:true });
+        }
+        document.body.append(this.clone);
+        this.clone.style.width = `${inputRect.width}px`;
+        this.clone.style.height = `${inputRect.height}px`;
+        this.clone.style.left = `${inputRect.left}px`;
+        this.clone.style.top = `${inputRect.top}px`;
+        this.clone.style.whiteSpace = style.whiteSpace;
+        this.clone.style.tabSize = style.tabSize;
+        const text = message ?? this.editor.value;
+        const before = text.slice(0, start);
+        this.clone.textContent = before;
+        const locator = document.createElement('span');
+        locator.textContent = text.slice(start, end);
+        this.clone.append(locator);
+        this.clone.append(text.slice(end));
+        this.clone.scrollTop = this.editor.textarea.scrollTop;
+        this.clone.scrollLeft = this.editor.textarea.scrollLeft;
+        const locatorRect = locator.getBoundingClientRect();
+        const bodyRect = document.body.getBoundingClientRect();
+        const location = {
+            left: locatorRect.left - bodyRect.left + (inputRect.left - scrollRect.left),
+            right: locatorRect.right - bodyRect.left + (inputRect.left - scrollRect.left),
+            top: locatorRect.top - bodyRect.top + (inputRect.top - scrollRect.top),
+            bottom: locatorRect.bottom - bodyRect.top + (inputRect.top - scrollRect.top),
+        };
+        // this.clone.remove();
+        return location;
+    }
+    buildSubScope(type, titleText, kvPairs, shadowNames = []) {
+        const hasResolved = (kvPairs.at(0)?.length ?? 0) > 2;
+        const subScope = document.createElement('div'); {
+            subScope.classList.add('stqrd--subScope');
+            const title = document.createElement('div'); {
+                title.classList.add('stqrd--title');
+                title.textContent = titleText;
+                //TODO highlight
+                subScope.append(title);
+            }
+            for (const [key, val, valResolved] of kvPairs) {
+                const isHidden = shadowNames.includes(key);
+                if (!isHidden) shadowNames.push(key);
+                const item = document.createElement('div'); {
+                    item.classList.add('stqrd--scopeItem');
+                    item.dataset.type = type;
+                    if (isHidden) item.classList.add('stqrd--isHidden');
+                    const k = document.createElement('div'); {
+                        k.classList.add('stqrd--key');
+                        k.textContent = key;
+                        item.append(k);
+                    }
+                    const makeValue = (val, hasResolved = false, isResolved = false)=>{
+                        const v = document.createElement('div'); {
+                            v.classList.add('stqrd--value');
+                            if (hasResolved) {
+                                if (isResolved) {
+                                    v.classList.add('stqrd--resolved');
+                                } else {
+                                    v.classList.add('stqrd--unresolved');
+                                }
+                            }
+                            if (val instanceof SlashCommandClosure) {
+                                v.classList.add('stqrd--closure');
+                                v.title = val.rawText;
+                                v.textContent = val.toString();
+                            } else if (val === undefined) {
+                                v.classList.add('stqrd--undefined');
+                                v.textContent = 'undefined';
+                            } else {
+                                let jsonVal = this.tryParse(val);
+                                if (jsonVal && typeof jsonVal == 'object') {
+                                    v.textContent = JSON.stringify(jsonVal, null, 2);
+                                } else {
+                                    v.textContent = val;
+                                    v.classList.add('stqrd--simple');
+                                }
+                            }
+                        }
+                        return v;
+                    };
+                    item.append(makeValue(val, hasResolved));
+                    if (hasResolved) {
+                        item.append(makeValue(valResolved, hasResolved, true));
+                    }
+                    subScope.append(item);
+                }
+            }
+            this.dom.debugger.scope.append(subScope);
+        }
+    }
+    /**
+     *
+     * @param {SlashCommandScope} scope
+     * @param {*} varNames
+     * @param {*} macroNames
+     * @param {*} ci
+     * @param {*} isCurrent
+     */
+    buildScope(scope, varNames = [], macroNames = [], ci = -1, isCurrent = false) {
+        if (!isCurrent) {
+            ci--;
+        }
+        const c = this.qr.debugController.stack.at(ci);
+        if (isCurrent) {
+            //TODO named args
+            const executor = this.qr.debugController.cmdStack.at(-1);
+            const keys = [...new Set([...Object.keys(this.qr.debugController.namedArguments ?? {}), ...(executor.namedArgumentList ?? []).map(it=>it.name)])]
+                .filter(it=>it[0] != '_')
+            ;
+            this.buildSubScope(
+                'argument',
+                `Named Arguments - /${executor.name}`,
+                keys.map(key=>[
+                    key,
+                    executor.namedArgumentList.find(it=>it.name == key)?.value,
+                    this.qr.debugController.namedArguments?.[key],
+                ]),
+            );
+            //TODO unnamed args
+            let unnamed = this.qr.debugController.unnamedArguments ?? [];
+            if (!Array.isArray(unnamed)) unnamed = [unnamed];
+            while (unnamed.length < (executor.unnamedArgumentList?.length ?? 0)) unnamed.push(undefined);
+            this.buildSubScope(
+                'argument',
+                `Unnamed Arguments - /${executor.name}`,
+                unnamed.map((it,idx)=>[idx, executor.unnamedArgumentList?.[idx]?.value, it]),
+            );
+        }
+        { // current scope
+            this.buildSubScope(
+                'variable',
+                isCurrent ? 'Current Scope' : 'Parent Scope',
+                Object.entries(scope.variables),
+                varNames,
+            );
+            this.buildSubScope(
+                'macro',
+                'Macros',
+                Object.entries(scope.macros),
+                macroNames,
+            );
+            this.buildSubScope(
+                'pipe',
+                'Pipe',
+                [['pipe', scope.pipe]],
+                [],
+            );
+        }
+        if (scope.parent) {
+            this.buildScope(
+                scope.parent,
+                varNames,
+                macroNames,
+                ci,
+            );
+        }
+    }
+    buildStack(closure) {
+        let ei = -1;
+        const cmdStack = this.qr.debugController.cmdStack.toReversed();
+        const stack = this.qr.debugController.stack.toReversed();
+        for (const executor of cmdStack) {
+            ei++;
+            const c = stack.at(ei);
+            const item = document.createElement('div'); {
+                item.classList.add('stqrd--stackItem');
+                //TODO add highlight
+                const cmd = document.createElement('div'); {
+                    cmd.classList.add('stqrd--cmd');
+                    cmd.textContent = `/${executor.name}`;
+                    if (executor.command.name == 'run') {
+                        cmd.textContent += `${(executor.name == ':' ? '' : ' ')}${executor.unnamedArgumentList[0]?.value}`;
+                    }
+                    item.append(cmd);
+                }
+                const src = document.createElement('div'); {
+                    src.classList.add('stqrd--src');
+                    const line = closure.fullText.slice(0, executor.start).split('\n').length;
+                    if (false) {
+                        //TODO handle UUID
+                    } else {
+                        src.textContent = `${executor.source}:${line}`;
+                    }
+                    item.append(src);
+                }
+                this.dom.debugger.callStack.append(item);
+            }
+        }
+    }
     async run() {
         this.editor.setOptions({ readOnly:true });
         this.dom.root.classList.remove('stqrd--hasResult');
         this.dom.root.classList.remove('stqrd--hasError');
+        this.dom.root.classList.add('stqrd--isDebugging');
         try {
             const abortController = new SlashCommandAbortController();
             const debugController = new SlashCommandDebugController();
@@ -678,7 +1044,37 @@ export class Editor {
             this.qr.debugController = debugController;
             this.qr.editorExecuteProgress = document.createElement('div');
             debugController.onBreakPoint = async(closure, executor)=>{
-                const isStepping = debugController.awaitContinue();
+                this.dom.root.classList.add('stqrd--isPaused');
+                // highlight line
+                const hi = document.createElement('div'); {
+                    const loc = this.getEditorPosition(Math.max(0, executor.start - 1), executor.end, closure.fullText);
+                    const layer = this.editor.textarea.getBoundingClientRect();
+                    hi.classList.add('stqrd--highlight');
+                    if (debugController.namedArguments === undefined) {
+                        hi.classList.add('stqrd--unresolved');
+                    }
+                    hi.style.left = `${loc.left - layer.left}px`;
+                    hi.style.width = `${loc.right - loc.left}px`;
+                    hi.style.top = `${loc.top - layer.top + this.editor.scrollContainer.scrollTop}px`;
+                    hi.style.height = `${loc.bottom - loc.top}px`;
+                    this.editor.scrollContainer.append(hi);
+                }
+
+                //TODO update textarea content
+                //TODO update crumbs
+                //TODO update scope
+                this.dom.debugger.scope.innerHTML = '';
+                this.buildScope(closure.scope, [], [], -1, true);
+
+                //update call stack
+                this.dom.debugger.callStack.innerHTML = '';
+                this.buildStack(closure);
+
+                const isStepping = await debugController.awaitContinue();
+                this.dom.debugger.callStack.innerHTML = '';
+                hi.remove();
+                this.dom.root.classList.remove('stqrd--isPaused');
+
                 return isStepping;
             };
             const result = await this.qrs.debug(this.qr);
@@ -696,6 +1092,8 @@ export class Editor {
                 this.dom.runError.innerHTML = `<div>${ex.message}</div>`;
             }
         }
+        this.dom.root.classList.remove('stqrd--isDebugging');
+        this.dom.root.classList.remove('stqrd--isPaused');
         this.editor.setOptions({ readOnly:false });
     }
 
@@ -705,6 +1103,13 @@ export class Editor {
             return JSON.stringify(parsed, null, 4);
         } catch {
             return str;
+        }
+    }
+    tryParse(str) {
+        try {
+            return JSON.parse(str);
+        } catch {
+            return null;
         }
     }
 
@@ -765,6 +1170,7 @@ export class Editor {
                 break;
             }
             case 'automationId': {
+                this.dom.automationId.value = value;
                 break;
             }
         }

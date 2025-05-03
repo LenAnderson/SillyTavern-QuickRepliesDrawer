@@ -200,17 +200,6 @@ body {
 #stqrd--drawer-v2 .stqrd--qrItem .stqrd--action:hover {
   opacity: 1;
 }
-#stqrd--drawer-v2 .stqrd--resizeHandle {
-  flex: 0 0 auto;
-  background-color: transparent;
-  cursor: ew-resize;
-  margin: 0 -2px;
-  width: 5px;
-  z-index: 1;
-}
-#stqrd--drawer-v2 .stqrd--resizeHandle:hover {
-  background-color: var(--stqrd--color-accent);
-}
 #stqrd--drawer-v2 .stqrd--resizeHandle:not(:is(.stqrd--showBrowser *)) {
   background-color: rgb(from var(--stqrd--color-accent) r g b / 0.5);
 }
@@ -359,6 +348,9 @@ body {
   flex: 1 1 auto;
   display: grid;
 }
+.stqrd--editorPanel .stqrd--codeEditor .prism-code-editor {
+  position: relative;
+}
 .stqrd--editorPanel .stqrd--codeEditor textarea {
   margin: 0;
 }
@@ -479,6 +471,9 @@ body {
   gap: 0.5em;
   align-items: center;
   cursor: pointer;
+}
+.stqrd--editorPanel .stqrd--debuggerWrap {
+  display: none;
 }
 .stqrd--editorPanel .stqrd--runResult,
 .stqrd--editorPanel .stqrd--runError {
@@ -637,6 +632,14 @@ body {
   gap: 1em;
   justify-content: end;
 }
+.stqrd--editorPanel .stqrd--footer .stqrd--autoExec {
+  display: contents;
+}
+@container stqrd--footer (max-width: 80em) {
+  .stqrd--editorPanel .stqrd--footer .stqrd--autoExec {
+    display: none;
+  }
+}
 .stqrd--editorPanel .stqrd--footer .stqrd--autoExecToggle {
   display: flex;
   align-items: center;
@@ -652,12 +655,6 @@ body {
 .stqrd--editorPanel .stqrd--footer .stqrd--autoExecToggle:hover {
   background-color: rgba(255, 255, 255, 0.125);
   opacity: 1;
-}
-@container stqrd--footer (max-width: 80em) {
-  .stqrd--editorPanel .stqrd--footer .stqrd--autoExecToggle {
-    display: none;
-    outline: 1px solid red;
-  }
 }
 .stqrd--editorPanel .stqrd--footer .stqrd--action {
   display: flex;
@@ -676,6 +673,188 @@ body {
   margin-top: -2px;
   opacity: 1;
   padding-top: 5px;
+}
+#stqrd--drawer-v2 .stqrd--layout:has(.stqrd--editorPanel.stqrd--isDebugging) .stqrd--panel,
+#stqrd--drawer-v2 .stqrd--layout:has(.stqrd--editorPanel.stqrd--isDebugging) > .stqrd--resizeHandle {
+  display: none;
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--options,
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--footer .stqrd--actions,
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--editorConfig {
+  display: none;
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debugContainer {
+  grid-column-start: 1;
+  grid-column-end: 4;
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--playbackControls {
+  background-color: var(--stqrd--color-accent);
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--playbackControls:hover {
+  background-color: var(--stqrd--color-accent);
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--playbackControls .stqrd--play {
+  opacity: 0.25;
+  pointer-events: none;
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--playbackControls .stqrd--playPause,
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--playbackControls .stqrd--stop {
+  opacity: 0.75;
+  pointer-events: all;
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--playbackControls .stqrd--button:hover {
+  opacity: 1;
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--resizeHandle:has(+ .stqrd--hideDebugger *) {
+  background-color: rgb(from var(--stqrd--color-accent) r g b / 0.5);
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--resizeHandle:has(+ .stqrd--hideDebugger *):hover {
+  background-color: var(--stqrd--color-accent);
+}
+.stqrd--editorPanel.stqrd--isDebugging.stqrd--isPaused .stqrd--debugControls {
+  background-color: var(--stqrd--color-accent);
+}
+.stqrd--editorPanel.stqrd--isDebugging.stqrd--isPaused .stqrd--debugControls .stqrd--button {
+  pointer-events: all;
+  opacity: 0.75;
+}
+.stqrd--editorPanel.stqrd--isDebugging.stqrd--isPaused .stqrd--debugControls .stqrd--button:hover {
+  opacity: 1;
+}
+.stqrd--editorPanel.stqrd--isDebugging.stqrd--isPaused .stqrd--highlight {
+  background-color: rgb(from var(--stqrd--color-accent) r g b / 50%);
+  position: absolute;
+  z-index: 1;
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap {
+  grid-row-start: 2;
+  grid-row-end: 4;
+  grid-column-start: 2;
+  grid-column-end: 3;
+  display: flex;
+  background-color: var(--stqrd--color-bgPrimary);
+  border-left: 1px solid var(--stqrd--color-border);
+  border-bottom: 2px solid var(--stqrd--color-accent);
+  width: min-content;
+  white-space: nowrap;
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--content {
+  --width: 40vw;
+  flex: 1 1 auto;
+  overflow-x: auto;
+  overflow-y: scroll;
+  max-width: 90vw;
+  width: var(--width);
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--block {
+  padding: 0.5em;
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--block:not(:last-child) {
+  border-bottom: 1px solid var(--stqrd--color-border);
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--block h4 {
+  margin: 0;
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5em;
+  align-self: stretch;
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--row:not(:last-child) {
+  padding-bottom: 0.5em;
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--scope {
+  display: grid;
+  grid-template-columns: 0fr 1fr 1fr;
+  column-gap: 0.5em;
+  font-size: smaller;
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope {
+  display: contents;
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope:nth-child(3n + 4) .stqrd--title,
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope:nth-child(3n + 5) .stqrd--title {
+  display: none;
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope .stqrd--title {
+  grid-column-start: 1;
+  grid-column-end: 4;
+  background-color: var(--stqrd--color-bgSecondary);
+  font-weight: bold;
+  margin-top: 0.5em;
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope .stqrd--scopeItem {
+  grid-column-start: 1;
+  grid-column-end: 4;
+  display: grid;
+  grid-template-columns: subgrid;
+  font-family: var(--monoFontFamily);
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope .stqrd--scopeItem:hover {
+  background-color: rgb(from var(--stqrd--color-accent) r g b / 0.5);
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope .stqrd--scopeItem[data-type="macro"] .stqrd--key::before,
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope .stqrd--scopeItem[data-type="pipe"] .stqrd--key::before {
+  content: "{{";
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope .stqrd--scopeItem[data-type="macro"] .stqrd--key::after,
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope .stqrd--scopeItem[data-type="pipe"] .stqrd--key::after {
+  content: "}}";
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope .stqrd--value {
+  grid-column-start: 2;
+  grid-column-end: 4;
+  white-space: pre;
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope .stqrd--value.stqrd--unresolved {
+  grid-column-end: 3;
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope .stqrd--value.stqrd--resolved {
+  grid-column-start: 3;
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope .stqrd--value.stqrd--simple::before,
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope .stqrd--value.stqrd--simple::after {
+  content: '"';
+  color: var(--stqrd--color-textString);
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--callStack {
+  display: grid;
+  grid-template-columns: minmax(5em, 1fr) minmax(5em, auto);
+  font-family: var(--monoFontFamily);
+  font-size: smaller;
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--callStack .stqrd--stackItem {
+  grid-column-start: 1;
+  grid-column-end: 3;
+  display: grid;
+  grid-template-columns: subgrid;
+  cursor: default;
+  white-space: nowrap;
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--callStack .stqrd--stackItem:hover {
+  background-color: rgb(from var(--stqrd--color-accent) r g b / 0.5);
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--callStack .stqrd--cmd {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--callStack .stqrd--src {
+  opacity: 0.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  direction: rtl;
+}
+.stqrd--resizeHandle {
+  flex: 0 0 auto;
+  background-color: transparent;
+  cursor: ew-resize;
+  margin: 0 -2px;
+  width: 5px;
+  z-index: 1;
+}
+.stqrd--resizeHandle:hover {
+  background-color: var(--stqrd--color-accent);
 }
 .stqrd--blocker {
   position: fixed;
