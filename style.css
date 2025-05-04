@@ -2,6 +2,118 @@
 
 .prism-code-editor{caret-color:#aeafad;font-family:Consolas,Monaco,Andale Mono,Ubuntu Mono,monospace;--editor__bg: #1e1e1e;--widget__border: #444;--widget__bg: #1e1e1e;--widget__color: #ccc;--widget__color-active: #fff;--widget__color-options: #aaa;--widget__bg-input: #262626;--widget__bg-hover: #2e2e2e;--widget__bg-active: #336699;--widget__focus-ring: #5299e0;--search__bg-find: #eb5e0054;--widget__bg-error: #4d1919;--widget__error-ring: #cc0000;--editor__border-highlight: 2px solid #282828;--editor__bg-selection-match: #add6ff26;--editor__line-number: #888;--editor__bg-scrollbar: 0, 0%, 50%;--editor__bg-fold: #c5c5c5;--bg-guide-indent: #9994;--pce-ac-icon-class: #ee9d28;--pce-ac-icon-enum: #ee9d28;--pce-ac-icon-function: #b180d7;--pce-ac-icon-interface: #75beff;--pce-ac-icon-variable: #75beff;color-scheme:dark}.match-highlight{--editor__bg-highlight: #282828}.prism-code-editor textarea::selection{background:#264f78;color:#0000}.pce-matches .match{--search__bg-find: #675451}.active-line{--editor__line-number: #ccc}.guide-indents .active{--bg-guide-indent: #eee6}[class*=language-]{color:#9cdcfe}.token.namespace{opacity:.7}.token.comment,.token.prolog,.token.blockquote.punctuation{color:#6a9955}.pce-tooltip,.token.punctuation,.token.attr-equals,.token.operator,.token.combinator,.token.plain-text{color:#d4d4d4}.token.number,.token.symbol,.token.inserted,.token.unit{color:#b5cea8}.token.regex,.language-regex,.token.regex .punctuation,.token.group,.token.string,.token.string-property.property,.token.char,.token.deleted{color:#ce9178}.url .token.string.url{text-decoration:underline}.token.doctype,.token.operator.arrow,.token.keyword,.token.important,.token.boolean,.token.tag,.token.entity,.token.regex-flags{color:#569cd6}.token.atrule .token.rule{color:#c586c0}.token.function,.token.alternation{color:#dcdcaa}.token.italic{font-style:italic}.token.strike{text-decoration:line-through}.token.class-name,.token.builtin,.token.maybe-class-name{color:#4ec9b0}.token.doctype .name,.token.atrule,.token.atrule .url,.token.property,.token.variable,.token.parameter,.token.interpolation,.token.attr-name{color:#9cdcfe}.token.selector,.token.escape{color:#d7ba7d}.token.tag>.punctuation,.token.doctype>.punctuation,.token.cdata{color:gray}.token.attr-value,.token.attr-value>.punctuation,.token.color{color:#ce9178}.token.namespace{color:#4ec9b0}.token.constant{color:#4fc1ff}.token.char-set,.token.regex .operator{color:#d16969}.language-markup,.language-markdown,.language-md,.language-html,.language-xml,.language-svg,.language-text,.language-css,.language-sass,.language-scss{color:#d4d4d4}.token.important.title .punctuation,.token.list.punctuation,.language-markdown .token.bold *{color:#569cd6}.language-markdown .token.code>.punctuation,.language-markdown .token.code.keyword{color:#d4d4d4}.language-markdown .token.url .content,.language-markdown .token.code-snippet.keyword,.token.url-reference .variable{color:#ce9178}.token.quantifier{color:#d7ba7d}.token.keyword.module,.token.keyword.control-flow,.token.keyword-if,.token.keyword-else,.token.keyword-return,.token.keyword-switch,.token.keyword-case,.token.keyword-default,.token.keyword-import,.token.keyword-from,.token.keyword-export,.token.keyword-as,.token.keyword-for,.token.keyword-while,.token.keyword-break,.token.keyword-continue,.token.keyword-try,.token.keyword-catch,.token.keyword-finally,.token.keyword-throw,.token.keyword-yield,.token.keyword-await{color:#c586c0}.token.bracket-level-0,.token.bracket-level-3,.token.bracket-level-6,.token.bracket-level-9{color:gold}.token.bracket-level-1,.token.bracket-level-4,.token.bracket-level-7,.token.bracket-level-10{color:orchid}.token.bracket-level-2,.token.bracket-level-5,.token.bracket-level-8,.token.bracket-level-11{color:#179fff}.token.interpolation-punctuation{color:#569cd6}.token.bracket-error{color:#ff1212cc}.token.markup-bracket{color:inherit}.active-bracket{box-shadow:inset 0 0 0 1px #888,inset 0 0 0 9in #0064001a}.active-tagname,.word-matches span{background:#575757b8}
 
+.jsonView--root {
+  --color: var(--SmartThemeBodyColor);
+  --symbol: var(--ac-style-color-symbol, rgba(115 156 211 / 1));
+  --string: var(--ac-style-color-string, rgba(190 146 122 / 1));
+  --number: var(--ac-style-color-number, rgba(188 205 170 / 1));
+  --accent: var(--lat--color-accent, var(--SmartThemeQuoteColor, #0078d4));
+  --l0: var(--ac-style-color-punctuation);
+  --l1: var(--ac-style-color-punctuationL1);
+  --l2: var(--ac-style-color-punctuationL2);
+  font-family: var(--monoFontFamily, monospace);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.jsonView--content {
+  border-left: 1px dotted rgb(from var(--color) r g b / 50%);
+  list-style: none;
+  margin: 0;
+  margin-left: 0.25em;
+  padding: 0 1.5em;
+}
+.jsonView--item:has(> .jsonView--isCollapsed) {
+  display: flex;
+  gap: 0.25em;
+}
+.jsonView--item:has(> .jsonView--isCollapsed) .jsonView--head::after {
+  content: '🡘';
+}
+.jsonView--item:has(> .jsonView--isCollapsed) .jsonView--content {
+  display: none;
+}
+.jsonView--item:hover:not(:has(.jsonView--item[data-type-group="complex"]:hover)) > .jsonView--content {
+  border-left-color: var(--accent);
+}
+.jsonView--item:hover:not(:has(.jsonView--item[data-type-group="complex"]:hover)) > .jsonView--head .jsonView--open,
+.jsonView--item:hover:not(:has(.jsonView--item[data-type-group="complex"]:hover)) > .jsonView--close {
+  color: var(--accent);
+  font-weight: bold;
+}
+.jsonView--head {
+  display: flex;
+  align-items: center;
+  gap: 0.25em;
+  cursor: pointer;
+}
+.jsonView--toggle::before {
+  content: '▾';
+}
+.jsonView--toggle:is(.jsonView--isCollapsed > .jsonView--toggle)::before {
+  content: '▸';
+}
+.jsonView--name {
+  font-weight: bold;
+  margin-right: 0.25em;
+}
+.jsonView--name::before {
+  content: '"';
+}
+.jsonView--name::after {
+  content: '":';
+}
+.jsonView--count {
+  opacity: 0.5;
+}
+.jsonView--count::before {
+  content: '{';
+}
+.jsonView--count::after {
+  content: '}';
+}
+.jsonView--item:has(> .jsonView--primitiveContent) {
+  display: flex;
+}
+.jsonView--item:has(> .jsonView--primitiveContent)[data-type="null"] > .jsonView--primitiveContent {
+  font-weight: bold;
+  color: var(--symbol);
+}
+.jsonView--item:has(> .jsonView--primitiveContent)[data-type="string"] > .jsonView--primitiveContent {
+  color: var(--string);
+}
+.jsonView--item:has(> .jsonView--primitiveContent)[data-type="number"] > .jsonView--primitiveContent {
+  color: var(--number);
+}
+.jsonView--open,
+.jsonView--close {
+  color: var(--l0);
+}
+.jsonView--open:where(.jsonView--content *),
+.jsonView--close:where(.jsonView--content *) {
+  color: var(--l1);
+}
+.jsonView--open:where(.jsonView--content .jsonView--content *),
+.jsonView--close:where(.jsonView--content .jsonView--content *) {
+  color: var(--l2);
+}
+.jsonView--open:where(.jsonView--content .jsonView--content .jsonView--content *),
+.jsonView--close:where(.jsonView--content .jsonView--content .jsonView--content *) {
+  color: var(--l0);
+}
+.jsonView--open:where(.jsonView--content .jsonView--content .jsonView--content .jsonView--content *),
+.jsonView--close:where(.jsonView--content .jsonView--content .jsonView--content .jsonView--content *) {
+  color: var(--l1);
+}
+.jsonView--open:where(.jsonView--content .jsonView--content .jsonView--content .jsonView--content .jsonView--content *),
+.jsonView--close:where(.jsonView--content .jsonView--content .jsonView--content .jsonView--content .jsonView--content *) {
+  color: var(--l2);
+}
+.jsonView--open:where(.jsonView--content .jsonView--content .jsonView--content .jsonView--content .jsonView--content .jsonView--content *),
+.jsonView--close:where(.jsonView--content .jsonView--content .jsonView--content .jsonView--content .jsonView--content .jsonView--content *) {
+  color: var(--color);
+}
+
 body {
   --stqrd--color-bgPrimary: var(--lat--color-bgPrimary, var(--SmartThemeBlurTintColor));
   --stqrd--color-bgSecondary: var(--lat--color-bgSecondary, var(--SmartThemeChatTintColor));
@@ -488,22 +600,29 @@ body {
   height: max-content;
   max-height: 25vh;
   overflow: auto;
-  padding: 0.5em;
+  position: relative;
 }
 .stqrd--editorPanel .stqrd--runResult {
-  background-color: color-mix(in srgb, var(--stqrd--color-bgSecondary), var(--stqrd--color-toastSuccess));
-  font-family: var(--monoFontFamily);
-  white-space: pre-wrap;
+  flex-direction: column;
 }
 .stqrd--editorPanel .stqrd--runResult:is(.stqrd--hasResult *) {
-  display: block;
+  display: flex;
 }
-.stqrd--editorPanel .stqrd--runResult::before {
-  content: 'Result:';
-  display: block;
-  font-family: var(--mainFontFamily);
+.stqrd--editorPanel .stqrd--runResult .stqrd--head {
+  flex: 0 0 auto;
+  background-color: var(--stqrd--color-toastSuccess);
+  color: white;
+  font-weight: bold;
+}
+.stqrd--editorPanel .stqrd--runResult .stqrd--body {
+  flex: 1 1 auto;
+  font-family: var(--monoFontFamily);
+  overflow: auto;
+  padding: 0.5em;
+  white-space: pre-wrap;
 }
 .stqrd--editorPanel .stqrd--runError {
+  padding: 0.5em;
   background-color: color-mix(in srgb, var(--stqrd--color-bgSecondary), var(--stqrd--color-toastError));
 }
 .stqrd--editorPanel .stqrd--runError:is(.stqrd--hasError *) {
@@ -683,6 +802,10 @@ body {
 #stqrd--drawer-v2 .stqrd--layout:has(.stqrd--editorPanel.stqrd--isDebugging) > .stqrd--resizeHandle {
   display: none;
 }
+.stqrd--editorPanel.stqrd--isDebugging > .stqrd--head .stqrd--close {
+  opacity: 0.25;
+  pointer-events: none;
+}
 .stqrd--editorPanel.stqrd--isDebugging .stqrd--options,
 .stqrd--editorPanel.stqrd--isDebugging .stqrd--footer .stqrd--actions,
 .stqrd--editorPanel.stqrd--isDebugging .stqrd--editorConfig {
@@ -734,7 +857,11 @@ body {
   position: absolute;
   z-index: 1;
 }
+.stqrd--editorPanel.stqrd--isDebugging.stqrd--isPaused .stqrd--highlight.stqrd--unresolved {
+  background-color: rgb(from var(--stqrd--color-textString) r g b / 50%);
+}
 .stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap {
+  --width: 40vw;
   grid-row-start: 2;
   grid-row-end: 4;
   grid-column-start: 2;
@@ -743,115 +870,9 @@ body {
   background-color: var(--stqrd--color-bgPrimary);
   border-left: 1px solid var(--stqrd--color-border);
   border-bottom: 2px solid var(--stqrd--color-accent);
-  width: min-content;
-  white-space: nowrap;
-}
-.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--content {
-  --width: 40vw;
-  flex: 1 1 auto;
-  overflow-x: auto;
-  overflow-y: scroll;
-  max-width: min(90vw, 90cqw);
   width: var(--width);
-}
-.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--block {
-  padding: 0.5em;
-}
-.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--block:not(:last-child) {
-  border-bottom: 1px solid var(--stqrd--color-border);
-}
-.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--block h4 {
-  margin: 0;
-}
-.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--row {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5em;
-  align-self: stretch;
-}
-.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--row:not(:last-child) {
-  padding-bottom: 0.5em;
-}
-.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--scope {
-  display: grid;
-  grid-template-columns: 0fr 1fr 1fr;
-  column-gap: 0.5em;
-  font-size: smaller;
-}
-.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope {
-  display: contents;
-}
-.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope:nth-child(3n + 4) .stqrd--title,
-.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope:nth-child(3n + 5) .stqrd--title {
-  display: none;
-}
-.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope .stqrd--title {
-  grid-column-start: 1;
-  grid-column-end: 4;
-  background-color: var(--stqrd--color-bgSecondary);
-  font-weight: bold;
-  margin-top: 0.5em;
-}
-.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope .stqrd--scopeItem {
-  grid-column-start: 1;
-  grid-column-end: 4;
-  display: grid;
-  grid-template-columns: subgrid;
-  font-family: var(--monoFontFamily);
-}
-.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope .stqrd--scopeItem:hover {
-  background-color: rgb(from var(--stqrd--color-accent) r g b / 0.5);
-}
-.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope .stqrd--scopeItem[data-type="macro"] .stqrd--key::before,
-.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope .stqrd--scopeItem[data-type="pipe"] .stqrd--key::before {
-  content: "{{";
-}
-.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope .stqrd--scopeItem[data-type="macro"] .stqrd--key::after,
-.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope .stqrd--scopeItem[data-type="pipe"] .stqrd--key::after {
-  content: "}}";
-}
-.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope .stqrd--value {
-  grid-column-start: 2;
-  grid-column-end: 4;
-  white-space: pre;
-}
-.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope .stqrd--value.stqrd--unresolved {
-  grid-column-end: 3;
-}
-.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope .stqrd--value.stqrd--resolved {
-  grid-column-start: 3;
-}
-.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope .stqrd--value.stqrd--simple::before,
-.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--subScope .stqrd--value.stqrd--simple::after {
-  content: '"';
-  color: var(--stqrd--color-textString);
-}
-.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--callStack {
-  display: grid;
-  grid-template-columns: minmax(5em, 1fr) minmax(5em, auto);
-  font-family: var(--monoFontFamily);
-  font-size: smaller;
-}
-.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--callStack .stqrd--stackItem {
-  grid-column-start: 1;
-  grid-column-end: 3;
-  display: grid;
-  grid-template-columns: subgrid;
-  cursor: default;
+  max-width: min(90vw, 90cqw);
   white-space: nowrap;
-}
-.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--callStack .stqrd--stackItem:hover {
-  background-color: rgb(from var(--stqrd--color-accent) r g b / 0.5);
-}
-.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--callStack .stqrd--cmd {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.stqrd--editorPanel.stqrd--isDebugging .stqrd--debuggerWrap .stqrd--callStack .stqrd--src {
-  opacity: 0.5;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  direction: rtl;
 }
 .stqrd--resizeHandle {
   flex: 0 0 auto;
@@ -910,4 +931,154 @@ body {
 }
 .stqrd--blocker .stqrd--menu .stqrd--item .stqrd--label {
   flex: 1 1 auto;
+}
+.stqrd--SlashCommandDebugger {
+  flex: 1 1 auto;
+  overflow-x: auto;
+  overflow-y: scroll;
+}
+.stqrd--SlashCommandDebugger .stqrd--controls {
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+  filter: saturate(0);
+  height: 1.75em;
+  opacity: 0.5;
+  transition: 200ms;
+  pointer-events: none;
+}
+.stqrd--SlashCommandDebugger .stqrd--controls:is(.stqrd--isPaused *) {
+  filter: saturate(1);
+  opacity: 1;
+  pointer-events: all;
+}
+.stqrd--SlashCommandDebugger .stqrd--controls .stqrd--button {
+  width: 2.5em;
+  text-align: center;
+  height: 100%;
+  position: relative;
+}
+.stqrd--SlashCommandDebugger .stqrd--controls .stqrd--button:after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  background-color: var(--stqrd--color-text);
+  mask-size: contain;
+  mask-position: center;
+  mask-repeat: no-repeat;
+}
+.stqrd--SlashCommandDebugger .stqrd--controls .stqrd--button.stqrd--resume:after {
+  mask-image: url('/img/step-resume.svg');
+}
+.stqrd--SlashCommandDebugger .stqrd--controls .stqrd--button.stqrd--stepOver:after {
+  mask-image: url('/img/step-over.svg');
+}
+.stqrd--SlashCommandDebugger .stqrd--controls .stqrd--button.stqrd--stepInto:after {
+  mask-image: url('/img/step-into.svg');
+}
+.stqrd--SlashCommandDebugger .stqrd--controls .stqrd--button.stqrd--stepOut:after {
+  mask-image: url('/img/step-out.svg');
+}
+.stqrd--SlashCommandDebugger .stqrd--controls .stqrd--button:hover {
+  background-color: rgba(255, 255, 255, 0.125);
+  opacity: 1;
+}
+.stqrd--SlashCommandDebugger .stqrd--block {
+  padding: 0.5em;
+}
+.stqrd--SlashCommandDebugger .stqrd--block:not(:last-child) {
+  border-bottom: 1px solid var(--stqrd--color-border);
+}
+.stqrd--SlashCommandDebugger .stqrd--block h4 {
+  margin: 0;
+}
+.stqrd--SlashCommandDebugger .stqrd--row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5em;
+  align-self: stretch;
+}
+.stqrd--SlashCommandDebugger .stqrd--row:not(:last-child) {
+  padding-bottom: 0.5em;
+}
+.stqrd--SlashCommandDebugger .stqrd--scope {
+  display: grid;
+  grid-template-columns: 0fr 1fr 1fr;
+  column-gap: 0.5em;
+  font-size: smaller;
+}
+.stqrd--SlashCommandDebugger .stqrd--subScope {
+  display: contents;
+}
+.stqrd--SlashCommandDebugger .stqrd--subScope:nth-child(3n + 4) .stqrd--title,
+.stqrd--SlashCommandDebugger .stqrd--subScope:nth-child(3n + 5) .stqrd--title {
+  display: none;
+}
+.stqrd--SlashCommandDebugger .stqrd--subScope .stqrd--title {
+  grid-column-start: 1;
+  grid-column-end: 4;
+  background-color: var(--stqrd--color-bgSecondary);
+  font-weight: bold;
+  margin-top: 0.5em;
+}
+.stqrd--SlashCommandDebugger .stqrd--subScope .stqrd--scopeItem {
+  grid-column-start: 1;
+  grid-column-end: 4;
+  display: grid;
+  grid-template-columns: subgrid;
+  font-family: var(--monoFontFamily);
+}
+.stqrd--SlashCommandDebugger .stqrd--subScope .stqrd--scopeItem:hover {
+  background-color: rgb(from var(--stqrd--color-accent) r g b / 0.125);
+}
+.stqrd--SlashCommandDebugger .stqrd--subScope .stqrd--scopeItem[data-type="macro"] .stqrd--key::before,
+.stqrd--SlashCommandDebugger .stqrd--subScope .stqrd--scopeItem[data-type="pipe"] .stqrd--key::before {
+  content: "{{";
+}
+.stqrd--SlashCommandDebugger .stqrd--subScope .stqrd--scopeItem[data-type="macro"] .stqrd--key::after,
+.stqrd--SlashCommandDebugger .stqrd--subScope .stqrd--scopeItem[data-type="pipe"] .stqrd--key::after {
+  content: "}}";
+}
+.stqrd--SlashCommandDebugger .stqrd--subScope .stqrd--value {
+  grid-column-start: 2;
+  grid-column-end: 4;
+  white-space: pre;
+}
+.stqrd--SlashCommandDebugger .stqrd--subScope .stqrd--value.stqrd--unresolved {
+  grid-column-end: 3;
+}
+.stqrd--SlashCommandDebugger .stqrd--subScope .stqrd--value.stqrd--resolved {
+  grid-column-start: 3;
+}
+.stqrd--SlashCommandDebugger .stqrd--subScope .stqrd--value.stqrd--simple::before,
+.stqrd--SlashCommandDebugger .stqrd--subScope .stqrd--value.stqrd--simple::after {
+  content: '"';
+  color: var(--stqrd--color-textString);
+}
+.stqrd--SlashCommandDebugger .stqrd--callStack {
+  display: grid;
+  grid-template-columns: minmax(5em, 1fr) minmax(5em, auto);
+  font-family: var(--monoFontFamily);
+  font-size: smaller;
+}
+.stqrd--SlashCommandDebugger .stqrd--callStack .stqrd--stackItem {
+  grid-column-start: 1;
+  grid-column-end: 3;
+  display: grid;
+  grid-template-columns: subgrid;
+  cursor: default;
+  white-space: nowrap;
+}
+.stqrd--SlashCommandDebugger .stqrd--callStack .stqrd--stackItem:hover {
+  background-color: rgb(from var(--stqrd--color-accent) r g b / 0.125);
+}
+.stqrd--SlashCommandDebugger .stqrd--callStack .stqrd--cmd {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stqrd--SlashCommandDebugger .stqrd--callStack .stqrd--src {
+  opacity: 0.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  direction: rtl;
 }

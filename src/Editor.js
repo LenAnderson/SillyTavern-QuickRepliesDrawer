@@ -1,12 +1,8 @@
 import { EventEmitter } from '../../../../../lib/eventemitter.js';
-import { AutoComplete } from '../../../../autocomplete/AutoComplete.js';
 import { setSlashCommandAutoComplete } from '../../../../slash-commands.js';
 import { SlashCommandAbortController } from '../../../../slash-commands/SlashCommandAbortController.js';
-import { SlashCommandClosure } from '../../../../slash-commands/SlashCommandClosure.js';
 import { SlashCommandDebugController } from '../../../../slash-commands/SlashCommandDebugController.js';
-import { SlashCommandExecutor } from '../../../../slash-commands/SlashCommandExecutor.js';
 import { SlashCommandParserError } from '../../../../slash-commands/SlashCommandParserError.js';
-import { SlashCommandScope } from '../../../../slash-commands/SlashCommandScope.js';
 import { accountStorage } from '../../../../util/AccountStorage.js';
 import { debounce, showFontAwesomePicker } from '../../../../utils.js';
 import { QuickReplySet } from '../../../quick-reply/src/QuickReplySet.js';
@@ -18,6 +14,9 @@ import { createEditor, languageMap } from '../lib/prism-code-editor/index.js';
 import { languages } from '../lib/prism-code-editor/prism/index.js';
 import { getCheckboxList } from './helper/autoExecHelper.js';
 import { QR_EVENT } from './helper/hookQuickReply.js';
+import { tryParse, tryParseAndFormat } from './lib/json.js';
+import { JsonView } from './lib/JsonView/JsonView.js';
+import { SlashCommandDebugger } from './SlashCommandDebugger.js';
 
 /**@typedef {import('./helper/hookQuickReply.js').ObservableQuickReply} QuickReply */
 /**@typedef {import('../lib/prism-code-editor/types.js').PrismEditor} PrismEditor */
@@ -42,6 +41,9 @@ export class Editor {
     /**@type {QuickReplySet} */ qrs;
 
     /**@type {PrismEditor} */ editor;
+    /**@type {SlashCommandDebugger} */ scriptDebugger;
+
+    /**@type {boolean} */ isDebugging = false;
 
 
     eventSource = new EventEmitter();
@@ -78,11 +80,9 @@ export class Editor {
         auto: {},
         debugger: {
             /**@type {HTMLElement} */
-            panel: undefined,
+            highlight: undefined,
             /**@type {HTMLElement} */
-            scope: undefined,
-            /**@type {HTMLElement} */
-            callStack: undefined,
+            hoverHighlight: undefined,
         },
     };
 
@@ -93,10 +93,18 @@ export class Editor {
      * @param {QuickReply} qr
      */
     constructor(qr) {
+        this.qrs = QuickReplySet.list.find(it=>it.qrList.includes(qr));
         this.qr = qr;
-        this.qrs = QuickReplySet.list.find(it=>it.qrList.includes(this.qr));
         qr.eventSource.on(QR_EVENT.PROP_CHANGED, (qr, evt)=>this.handlePropChanged(evt));
         qr.eventSource.on(QR_EVENT.DELETE, (qr, evt)=>this.close());
+
+        this.scriptDebugger = new SlashCommandDebugger(qr);
+        this.scriptDebugger.eventSource.on(SlashCommandDebugger.EVENT.START, ()=>this.handleDebugStart());
+        this.scriptDebugger.eventSource.on(SlashCommandDebugger.EVENT.PAUSE, (_, evt)=>this.handleDebugPause(evt));
+        this.scriptDebugger.eventSource.on(SlashCommandDebugger.EVENT.RESUME, ()=>this.handleDebugResume());
+        this.scriptDebugger.eventSource.on(SlashCommandDebugger.EVENT.STOP, ()=>this.handleDebugStop());
+        this.scriptDebugger.eventSource.on(SlashCommandDebugger.EVENT.RESULT, (_, result)=>this.handleDebugResult(result));
+        this.scriptDebugger.eventSource.on(SlashCommandDebugger.EVENT.ERROR, (_, error)=>this.handleDebugError(error));
     }
 
 
@@ -419,25 +427,25 @@ export class Editor {
                             isResizing = true;
                             evt.preventDefault();
                             let resizeStart = evt.x;
-                            let wStart = this.dom.debugger.panel.offsetWidth;
+                            let wStart = debuggerWrap.offsetWidth;
                             let wEnd;
                             const dragListener = /**@type {(evt:PointerEvent)=>any} */(debounce((evt)=>{
                                 evt.preventDefault();
                                 wEnd = wStart - (evt.x - resizeStart);
-                                this.dom.debugger.panel.style.setProperty('--width', `${wEnd}px`);
+                                debuggerWrap.style.setProperty('--width', `${wEnd}px`);
                             }, 5));
                             window.addEventListener('pointerup', ()=>{
                                 window.removeEventListener('pointermove', dragListener);
                                 isResizing = false;
                                 if (!wEnd || wEnd <= 0) {
-                                    const is = content.classList.toggle('stqrd--hideDebugger');
+                                    const is = debuggerWrap.classList.toggle('stqrd--hideDebugger');
                                     if (is) {
-                                        this.dom.debugger.panel.style.setProperty('--width', '0');
+                                        debuggerWrap.style.setProperty('--width', '0');
                                     } else {
-                                        this.dom.debugger.panel.style.setProperty('--width', `${localStorage.getItem('stqrd--debugger-panelWidth')}px`);
+                                        debuggerWrap.style.setProperty('--width', `${localStorage.getItem('stqrd--debugger-panelWidth')}px`);
                                     }
                                 } else if (wEnd > 0) {
-                                    content.classList.remove('stqrd--hideDebugger');
+                                    debuggerWrap.classList.remove('stqrd--hideDebugger');
                                     localStorage.setItem('stqrd--debugger-panelWidth', wEnd.toString());
                                 }
                             }, { once:true });
@@ -445,49 +453,21 @@ export class Editor {
                         });
                         debuggerWrap.append(resizeHandle);
                     }
-                    const content = document.createElement('div'); {
-                        this.dom.debugger.panel = content;
-                        content.classList.add('stqrd--content');
-                        content.style.setProperty('--width', `${localStorage.getItem('stqrd--debugger-panelWidth')}px`);
-                        { // scope
-                            const block = document.createElement('div'); {
-                                block.classList.add('stqrd--block');
-                                const title = document.createElement('h4'); {
-                                    title.textContent = 'Scope';
-                                    block.append(title);
-                                }
-                                const blockContent = document.createElement('div'); {
-                                    this.dom.debugger.scope = blockContent;
-                                    blockContent.classList.add('stqrd--blockContent');
-                                    blockContent.classList.add('stqrd--scope');
-                                    block.append(blockContent);
-                                }
-                                content.append(block);
-                            }
-                        }
-                        { // call stack
-                            const block = document.createElement('div'); {
-                                block.classList.add('stqrd--block');
-                                const title = document.createElement('h4'); {
-                                    title.textContent = 'Call Stack';
-                                    block.append(title);
-                                }
-                                const blockContent = document.createElement('div'); {
-                                    this.dom.debugger.callStack = blockContent;
-                                    blockContent.classList.add('stqrd--blockContent');
-                                    blockContent.classList.add('stqrd--callStack');
-                                    block.append(blockContent);
-                                }
-                                content.append(block);
-                            }
-                        }
-                        debuggerWrap.append(content);
-                    }
+                    debuggerWrap.append(this.scriptDebugger.render());
                     root.append(debuggerWrap);
                 }
                 const runResult = document.createElement('div'); {
-                    this.dom.runResult = runResult;
                     runResult.classList.add('stqrd--runResult');
+                    const head = document.createElement('div'); {
+                        head.classList.add('stqrd--head');
+                        head.textContent = 'Result:';
+                        runResult.append(head);
+                    }
+                    const body = document.createElement('div'); {
+                        this.dom.runResult = body;
+                        body.classList.add('stqrd--body');
+                        runResult.append(body);
+                    }
                     root.append(runResult);
                 }
                 const runError = document.createElement('div'); {
@@ -555,8 +535,8 @@ export class Editor {
                         }
                         footer.append(editorConfig);
                     }
-                    const debugContainer = document.createElement('div'); {
-                        debugContainer.classList.add('stqrd--debugContainer');
+                    const playbackContainer = document.createElement('div'); {
+                        playbackContainer.classList.add('stqrd--debugContainer');
                         const playbackControls = document.createElement('div'); {
                             playbackControls.classList.add('stqrd--playbackControls');
                             const play = document.createElement('div'); {
@@ -590,49 +570,9 @@ export class Editor {
                                 stop.title = 'Stop script execution';
                                 playbackControls.append(stop);
                             }
-                            debugContainer.append(playbackControls);
+                            playbackContainer.append(playbackControls);
                         }
-                        const debugControls = document.createElement('div'); {
-                            debugControls.classList.add('stqrd--debugControls');
-                            const resume = document.createElement('div'); {
-                                resume.classList.add('stqrd--button');
-                                resume.classList.add('stqrd--resume');
-                                resume.title = 'Resume';
-                                resume.addEventListener('click', ()=>{
-                                    this.qr.debugController?.resume();
-                                });
-                                debugControls.append(resume);
-                            }
-                            const stepOver = document.createElement('div'); {
-                                stepOver.classList.add('stqrd--button');
-                                stepOver.classList.add('stqrd--stepOver');
-                                stepOver.title = 'Step over';
-                                stepOver.addEventListener('click', ()=>{
-                                    this.qr.debugController?.step();
-                                });
-                                debugControls.append(stepOver);
-                            }
-                            const stepInto = document.createElement('div'); {
-                                stepInto.classList.add('stqrd--button');
-                                stepInto.classList.add('stqrd--stepInto');
-                                stepInto.title = 'Step into';
-                                stepInto.addEventListener('click', ()=>{
-                                    this.qr.debugController?.stepInto();
-                                });
-                                debugControls.append(stepInto);
-                            }
-                            const stepOut = document.createElement('div'); {
-                                stepOut.classList.add('stqrd--button');
-                                stepOut.classList.add('stqrd--stepOut');
-                                stepOut.title = 'Step out';
-                                stepOut.addEventListener('click', ()=>{
-                                    this.qr.debugController?.stepOut();
-                                });
-                                debugControls.append(stepOut);
-                            }
-                            debugContainer.append(debugControls);
-                        }
-                        footer.append(debugContainer);
+                        footer.append(playbackContainer);
                     }
                     const actions = document.createElement('div'); {
                         actions.classList.add('stqrd--actions');
@@ -794,6 +734,7 @@ export class Editor {
                     tabSize: parseInt(accountStorage.getItem('qr--tabSize') ?? '4'),
                     wordWrap: JSON.parse(accountStorage.getItem('qr--wrap') ?? 'false'),
                     onUpdate: /**@type {(value:string)=>void}*/(debounce((value)=>{
+                        if (this.isDebugging) return;
                         if (value != this.qr.message) {
                             this.qr.updateMessage(value);
                         }
@@ -872,245 +813,9 @@ export class Editor {
         // this.clone.remove();
         return location;
     }
-    buildSubScope(type, titleText, kvPairs, shadowNames = []) {
-        const hasResolved = (kvPairs.at(0)?.length ?? 0) > 2;
-        const subScope = document.createElement('div'); {
-            subScope.classList.add('stqrd--subScope');
-            const title = document.createElement('div'); {
-                title.classList.add('stqrd--title');
-                title.textContent = titleText;
-                //TODO highlight
-                subScope.append(title);
-            }
-            for (const [key, val, valResolved] of kvPairs) {
-                const isHidden = shadowNames.includes(key);
-                if (!isHidden) shadowNames.push(key);
-                const item = document.createElement('div'); {
-                    item.classList.add('stqrd--scopeItem');
-                    item.dataset.type = type;
-                    if (isHidden) item.classList.add('stqrd--isHidden');
-                    const k = document.createElement('div'); {
-                        k.classList.add('stqrd--key');
-                        k.textContent = key;
-                        item.append(k);
-                    }
-                    const makeValue = (val, hasResolved = false, isResolved = false)=>{
-                        const v = document.createElement('div'); {
-                            v.classList.add('stqrd--value');
-                            if (hasResolved) {
-                                if (isResolved) {
-                                    v.classList.add('stqrd--resolved');
-                                } else {
-                                    v.classList.add('stqrd--unresolved');
-                                }
-                            }
-                            if (val instanceof SlashCommandClosure) {
-                                v.classList.add('stqrd--closure');
-                                v.title = val.rawText;
-                                v.textContent = val.toString();
-                            } else if (val === undefined) {
-                                v.classList.add('stqrd--undefined');
-                                v.textContent = 'undefined';
-                            } else {
-                                let jsonVal = this.tryParse(val);
-                                if (jsonVal && typeof jsonVal == 'object') {
-                                    v.textContent = JSON.stringify(jsonVal, null, 2);
-                                } else {
-                                    v.textContent = val;
-                                    v.classList.add('stqrd--simple');
-                                }
-                            }
-                        }
-                        return v;
-                    };
-                    item.append(makeValue(val, hasResolved));
-                    if (hasResolved) {
-                        item.append(makeValue(valResolved, hasResolved, true));
-                    }
-                    subScope.append(item);
-                }
-            }
-            this.dom.debugger.scope.append(subScope);
-        }
-    }
-    /**
-     *
-     * @param {SlashCommandScope} scope
-     * @param {*} varNames
-     * @param {*} macroNames
-     * @param {*} ci
-     * @param {*} isCurrent
-     */
-    buildScope(scope, varNames = [], macroNames = [], ci = -1, isCurrent = false) {
-        if (!isCurrent) {
-            ci--;
-        }
-        const c = this.qr.debugController.stack.at(ci);
-        if (isCurrent) {
-            //TODO named args
-            const executor = this.qr.debugController.cmdStack.at(-1);
-            const keys = [...new Set([...Object.keys(this.qr.debugController.namedArguments ?? {}), ...(executor.namedArgumentList ?? []).map(it=>it.name)])]
-                .filter(it=>it[0] != '_')
-            ;
-            this.buildSubScope(
-                'argument',
-                `Named Arguments - /${executor.name}`,
-                keys.map(key=>[
-                    key,
-                    executor.namedArgumentList.find(it=>it.name == key)?.value,
-                    this.qr.debugController.namedArguments?.[key],
-                ]),
-            );
-            //TODO unnamed args
-            let unnamed = this.qr.debugController.unnamedArguments ?? [];
-            if (!Array.isArray(unnamed)) unnamed = [unnamed];
-            while (unnamed.length < (executor.unnamedArgumentList?.length ?? 0)) unnamed.push(undefined);
-            this.buildSubScope(
-                'argument',
-                `Unnamed Arguments - /${executor.name}`,
-                unnamed.map((it,idx)=>[idx, executor.unnamedArgumentList?.[idx]?.value, it]),
-            );
-        }
-        { // current scope
-            this.buildSubScope(
-                'variable',
-                isCurrent ? 'Current Scope' : 'Parent Scope',
-                Object.entries(scope.variables),
-                varNames,
-            );
-            this.buildSubScope(
-                'macro',
-                'Macros',
-                Object.entries(scope.macros),
-                macroNames,
-            );
-            this.buildSubScope(
-                'pipe',
-                'Pipe',
-                [['pipe', scope.pipe]],
-                [],
-            );
-        }
-        if (scope.parent) {
-            this.buildScope(
-                scope.parent,
-                varNames,
-                macroNames,
-                ci,
-            );
-        }
-    }
-    buildStack(closure) {
-        let ei = -1;
-        const cmdStack = this.qr.debugController.cmdStack.toReversed();
-        const stack = this.qr.debugController.stack.toReversed();
-        for (const executor of cmdStack) {
-            ei++;
-            const c = stack.at(ei);
-            const item = document.createElement('div'); {
-                item.classList.add('stqrd--stackItem');
-                //TODO add highlight
-                const cmd = document.createElement('div'); {
-                    cmd.classList.add('stqrd--cmd');
-                    cmd.textContent = `/${executor.name}`;
-                    if (executor.command.name == 'run') {
-                        cmd.textContent += `${(executor.name == ':' ? '' : ' ')}${executor.unnamedArgumentList[0]?.value}`;
-                    }
-                    item.append(cmd);
-                }
-                const src = document.createElement('div'); {
-                    src.classList.add('stqrd--src');
-                    const line = closure.fullText.slice(0, executor.start).split('\n').length;
-                    if (false) {
-                        //TODO handle UUID
-                    } else {
-                        src.textContent = `${executor.source}:${line}`;
-                    }
-                    item.append(src);
-                }
-                this.dom.debugger.callStack.append(item);
-            }
-        }
-    }
     async run() {
-        this.editor.setOptions({ readOnly:true });
-        this.dom.root.classList.remove('stqrd--hasResult');
-        this.dom.root.classList.remove('stqrd--hasError');
-        this.dom.root.classList.add('stqrd--isDebugging');
-        try {
-            const abortController = new SlashCommandAbortController();
-            const debugController = new SlashCommandDebugController();
-            this.qr.abortController = abortController;
-            this.qr.debugController = debugController;
-            this.qr.editorExecuteProgress = document.createElement('div');
-            debugController.onBreakPoint = async(closure, executor)=>{
-                this.dom.root.classList.add('stqrd--isPaused');
-                // highlight line
-                const hi = document.createElement('div'); {
-                    const loc = this.getEditorPosition(Math.max(0, executor.start - 1), executor.end, closure.fullText);
-                    const layer = this.editor.textarea.getBoundingClientRect();
-                    hi.classList.add('stqrd--highlight');
-                    if (debugController.namedArguments === undefined) {
-                        hi.classList.add('stqrd--unresolved');
-                    }
-                    hi.style.left = `${loc.left - layer.left}px`;
-                    hi.style.width = `${loc.right - loc.left}px`;
-                    hi.style.top = `${loc.top - layer.top + this.editor.scrollContainer.scrollTop}px`;
-                    hi.style.height = `${loc.bottom - loc.top}px`;
-                    this.editor.scrollContainer.append(hi);
-                }
-
-                //TODO update textarea content
-                //TODO update crumbs
-                //TODO update scope
-                this.dom.debugger.scope.innerHTML = '';
-                this.buildScope(closure.scope, [], [], -1, true);
-
-                //update call stack
-                this.dom.debugger.callStack.innerHTML = '';
-                this.buildStack(closure);
-
-                const isStepping = await debugController.awaitContinue();
-                this.dom.debugger.callStack.innerHTML = '';
-                hi.remove();
-                this.dom.root.classList.remove('stqrd--isPaused');
-
-                return isStepping;
-            };
-            const result = await this.qrs.debug(this.qr);
-            this.dom.runResult.textContent = this.tryParseAndFormat(result?.toString());
-            this.dom.root.classList.add('stqrd--hasResult');
-        } catch (ex) {
-            this.dom.root.classList.add('stqrd--hasError');
-            if (ex instanceof SlashCommandParserError) {
-                this.dom.runError.innerHTML = `
-                    <div>${ex.message}</div>
-                    <div>Line: ${ex.line} Column: ${ex.column}</div>
-                    <pre style="text-align:left;">${ex.hint}</pre>
-                `;
-            } else {
-                this.dom.runError.innerHTML = `<div>${ex.message}</div>`;
-            }
-        }
-        this.dom.root.classList.remove('stqrd--isDebugging');
-        this.dom.root.classList.remove('stqrd--isPaused');
-        this.editor.setOptions({ readOnly:false });
-    }
-
-    tryParseAndFormat(str) {
-        try {
-            const parsed = JSON.parse(str);
-            return JSON.stringify(parsed, null, 4);
-        } catch {
-            return str;
-        }
-    }
-    tryParse(str) {
-        try {
-            return JSON.parse(str);
-        } catch {
-            return null;
-        }
+        this.qr.updateMessage(this.editor.value);
+        await this.scriptDebugger.run();
     }
 
     close() {
@@ -1173,6 +878,73 @@ export class Editor {
                 this.dom.automationId.value = value;
                 break;
             }
+        }
+    }
+
+
+    handleDebugStart() {
+        this.isDebugging = true;
+        this.editor.setOptions({ readOnly:true });
+        this.dom.root.classList.remove('stqrd--hasResult');
+        this.dom.root.classList.remove('stqrd--hasError');
+        this.dom.root.classList.add('stqrd--isDebugging');
+    }
+    /**
+     *
+     * @param {{start:number, end:number, fullText:string, qrs:string, qr:string, isResolved:boolean}} evt
+     */
+    handleDebugPause(evt) {
+        this.dom.root.classList.add('stqrd--isPaused');
+        this.editor.setOptions({ value: evt.fullText });
+        this.dom.crumbs.qrs.textContent = evt.qrs;
+        this.dom.crumbs.qr.textContent = evt.qr;
+        // highlight line
+        this.dom.debugger.highlight?.remove();
+        const hi = document.createElement('div'); {
+            this.dom.debugger.highlight = hi;
+            const loc = this.getEditorPosition(evt.start, evt.end, evt.fullText);
+            const layer = this.editor.textarea.getBoundingClientRect();
+            hi.classList.add('stqrd--highlight');
+            if (!evt.isResolved) {
+                hi.classList.add('stqrd--unresolved');
+            }
+            hi.style.left = `${loc.left - layer.left}px`;
+            hi.style.width = `${loc.right - loc.left}px`;
+            hi.style.top = `${loc.top - layer.top + this.editor.scrollContainer.scrollTop}px`;
+            hi.style.height = `${loc.bottom - loc.top}px`;
+            this.editor.scrollContainer.append(hi);
+        }
+    }
+    handleDebugResume() {
+        this.dom.debugger.highlight?.remove();
+        this.dom.debugger.highlight = null;
+        this.dom.root.classList.remove('stqrd--isPaused');
+    }
+    handleDebugStop() {
+        this.editor.setOptions({ value: this.qr.message });
+        this.dom.crumbs.qrs.textContent = this.qrs.name;
+        this.dom.crumbs.qr.textContent = this.qr.label;
+        this.dom.root.classList.remove('stqrd--isDebugging');
+        this.dom.root.classList.remove('stqrd--isPaused');
+        this.editor.setOptions({ readOnly:false });
+        this.isDebugging = false;
+    }
+    handleDebugResult(result) {
+        this.dom.runResult.innerHTML = '';
+        this.dom.runResult.append(new JsonView(tryParse(result) ?? result).render());
+        // this.dom.runResult.textContent = tryParseAndFormat(result?.toString());
+        this.dom.root.classList.add('stqrd--hasResult');
+    }
+    handleDebugError(error) {
+        this.dom.root.classList.add('stqrd--hasError');
+        if (error instanceof SlashCommandParserError) {
+            this.dom.runError.innerHTML = `
+                <div>${error.message}</div>
+                <div>Line: ${error.line} Column: ${error.column}</div>
+                <pre style="text-align:left;">${error.hint}</pre>
+            `;
+        } else {
+            this.dom.runError.innerHTML = `<div>${error.message}</div>`;
         }
     }
 }

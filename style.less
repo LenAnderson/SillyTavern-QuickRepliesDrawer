@@ -1,6 +1,8 @@
 @import (inline) url("./lib/prism-code-editor/layout.css");
 @import (inline) url("./lib/prism-code-editor/themes/vs-code-dark.css");
 
+@import (inline) url("./src/lib/JsonView/jsonView.css");
+
 
 
 
@@ -611,22 +613,29 @@ body { // colors
         height: max-content;
         max-height: 25vh;
         overflow: auto;
-        padding: 0.5em;
+        position: relative;
     }
     .stqrd--runResult {
-        background-color: color-mix(in srgb, var(--stqrd--color-bgSecondary), var(--stqrd--color-toastSuccess));
-        font-family: var(--monoFontFamily);
-        white-space: pre-wrap;
+        flex-direction: column;
         &:is(.stqrd--hasResult *) {
-            display: block;
+            display: flex;
         }
-        &::before {
-            content: 'Result:';
-            display: block;
-            font-family: var(--mainFontFamily);
+        .stqrd--head {
+            flex: 0 0 auto;
+            background-color: var(--stqrd--color-toastSuccess);
+            color: white;
+            font-weight: bold;
+        }
+        .stqrd--body {
+            flex: 1 1 auto;
+            font-family: var(--monoFontFamily);
+            overflow: auto;
+            padding: 0.5em;
+            white-space: pre-wrap;
         }
     }
     .stqrd--runError {
+        padding: 0.5em;
         background-color: color-mix(in srgb, var(--stqrd--color-bgSecondary), var(--stqrd--color-toastError));
         &:is(.stqrd--hasError *) {
             display: block;
@@ -822,6 +831,10 @@ body { // colors
     }
 }
 .stqrd--editorPanel.stqrd--isDebugging {
+    > .stqrd--head .stqrd--close {
+        opacity: 0.25;
+        pointer-events: none;
+    }
     .stqrd--options,
     .stqrd--footer .stqrd--actions,
     .stqrd--editorConfig
@@ -876,11 +889,14 @@ body { // colors
             background-color: rgb(from var(--stqrd--color-accent) r g b / 50%);
             position: absolute;
             z-index: 1;
-
+            &.stqrd--unresolved {
+                background-color: rgb(from var(--stqrd--color-textString) r g b / 50%);
+            }
         }
     }
 
     .stqrd--debuggerWrap {
+        --width: 40vw;
         grid-row-start: 2;
         grid-row-end: 4;
         grid-column-start: 2;
@@ -891,133 +907,9 @@ body { // colors
         background-color: var(--stqrd--color-bgPrimary);
         border-left: 1px solid var(--stqrd--color-border);
         border-bottom: 2px solid var(--stqrd--color-accent);
-        width: min-content;
+        width: var(--width);
+        max-width: min(90vw, 90cqw);
         white-space: nowrap;
-
-        .stqrd--content {
-            --width: 40vw;
-            flex: 1 1 auto;
-
-            overflow-x: auto;
-            overflow-y: scroll;
-            max-width: min(90vw, 90cqw);
-            width: var(--width);
-        }
-
-        .stqrd--block {
-            padding: 0.5em;
-            &:not(:last-child) {
-                border-bottom: 1px solid var(--stqrd--color-border);
-            }
-            h4 {
-                margin: 0;
-            }
-        }
-        .stqrd--row {
-            display: flex;
-            align-items: baseline;
-            gap: 0.5em;
-            align-self: stretch;
-            &:not(:last-child) {
-                padding-bottom: 0.5em;
-            }
-        }
-
-        .stqrd--scope {
-            display: grid;
-            grid-template-columns: 0fr 1fr 1fr;
-            column-gap: 0.5em;
-            font-size: smaller;
-        }
-        .stqrd--subScope {
-            display: contents;
-            &:nth-child(3n + 4), &:nth-child(3n + 5) {
-                .stqrd--title {
-                    display: none;
-                }
-            }
-            .stqrd--title {
-                grid-column-start: 1;
-                grid-column-end: 4;
-
-                background-color: var(--stqrd--color-bgSecondary);
-                font-weight: bold;
-                margin-top: 0.5em;
-            }
-            .stqrd--scopeItem {
-                grid-column-start: 1;
-                grid-column-end: 4;
-
-                display: grid;
-                grid-template-columns: subgrid;
-
-                font-family: var(--monoFontFamily);
-                &:hover {
-                    background-color: rgb(from var(--stqrd--color-accent) r g b / 0.5);
-                }
-            }
-            .stqrd--scopeItem {
-                &[data-type="macro"], &[data-type="pipe"] {
-                    .stqrd--key {
-                        &::before {
-                            content: "{{";
-                        }
-                        &::after {
-                            content: "}}";
-                        }
-                    }
-                }
-            }
-            .stqrd--value {
-                grid-column-start: 2;
-                grid-column-end: 4;
-                white-space: pre;
-                &.stqrd--unresolved {
-                    grid-column-end: 3;
-                }
-                &.stqrd--resolved {
-                    grid-column-start: 3;
-                }
-                &.stqrd--simple {
-                    &::before, &::after {
-                        content: '"';
-                        color: var(--stqrd--color-textString)
-                    }
-                }
-            }
-        }
-
-        .stqrd--callStack {
-            display: grid;
-            grid-template-columns: minmax(5em, 1fr) minmax(5em, auto);
-
-            font-family: var(--monoFontFamily);
-            font-size: smaller;
-            .stqrd--stackItem {
-                grid-column-start: 1;
-                grid-column-end: 3;
-
-                display: grid;
-                grid-template-columns: subgrid;
-
-                cursor: default;
-                white-space: nowrap;
-                &:hover {
-                    background-color: rgb(from var(--stqrd--color-accent) r g b / 0.5);
-                }
-            }
-            .stqrd--cmd {
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-            .stqrd--src {
-                opacity: 0.5;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                // min-width: 5em;
-                direction: rtl;
-            }
-        }
     }
 }
 
@@ -1090,4 +982,178 @@ body { // colors
 			}
 		}
 	}
+}
+
+
+// debugger
+.stqrd--SlashCommandDebugger {
+    flex: 1 1 auto;
+
+    overflow-x: auto;
+    overflow-y: scroll;
+
+    .stqrd--controls {
+        display: flex;
+        gap: 0.5em;
+        align-items: center;
+
+        filter: saturate(0);
+        height: 1.75em;
+        opacity: 0.5;
+        transition: 200ms;
+        pointer-events: none;
+        &:is(.stqrd--isPaused *) {
+            filter: saturate(1);
+            opacity: 1;
+            pointer-events: all;
+
+        }
+
+        .stqrd--button {
+            width: 2.5em;
+            text-align: center;
+            height: 100%;
+            position: relative;
+            &:after {
+                content: '';
+                position: absolute;
+                inset: 3px;
+                background-color: var(--stqrd--color-text);
+                mask-size: contain;
+                mask-position: center;
+                mask-repeat: no-repeat;
+            }
+            &.stqrd--resume:after {
+                mask-image: url('/img/step-resume.svg');
+            }
+            &.stqrd--stepOver:after {
+                mask-image: url('/img/step-over.svg');
+            }
+            &.stqrd--stepInto:after {
+                mask-image: url('/img/step-into.svg');
+            }
+            &.stqrd--stepOut:after {
+                mask-image: url('/img/step-out.svg');
+            }
+            &:hover {
+                background-color: rgb(255 255 255 / 0.125);
+                opacity: 1;
+            }
+        }
+    }
+
+    .stqrd--block {
+        padding: 0.5em;
+        &:not(:last-child) {
+            border-bottom: 1px solid var(--stqrd--color-border);
+        }
+        h4 {
+            margin: 0;
+        }
+    }
+    .stqrd--row {
+        display: flex;
+        align-items: baseline;
+        gap: 0.5em;
+        align-self: stretch;
+        &:not(:last-child) {
+            padding-bottom: 0.5em;
+        }
+    }
+
+    .stqrd--scope {
+        display: grid;
+        grid-template-columns: 0fr 1fr 1fr;
+        column-gap: 0.5em;
+        font-size: smaller;
+    }
+    .stqrd--subScope {
+        display: contents;
+        &:nth-child(3n + 4), &:nth-child(3n + 5) {
+            .stqrd--title {
+                display: none;
+            }
+        }
+        .stqrd--title {
+            grid-column-start: 1;
+            grid-column-end: 4;
+
+            background-color: var(--stqrd--color-bgSecondary);
+            font-weight: bold;
+            margin-top: 0.5em;
+        }
+        .stqrd--scopeItem {
+            grid-column-start: 1;
+            grid-column-end: 4;
+
+            display: grid;
+            grid-template-columns: subgrid;
+
+            font-family: var(--monoFontFamily);
+            &:hover {
+                background-color: rgb(from var(--stqrd--color-accent) r g b / 0.125);
+            }
+        }
+        .stqrd--scopeItem {
+            &[data-type="macro"], &[data-type="pipe"] {
+                .stqrd--key {
+                    &::before {
+                        content: "{{";
+                    }
+                    &::after {
+                        content: "}}";
+                    }
+                }
+            }
+        }
+        .stqrd--value {
+            grid-column-start: 2;
+            grid-column-end: 4;
+            white-space: pre;
+            &.stqrd--unresolved {
+                grid-column-end: 3;
+            }
+            &.stqrd--resolved {
+                grid-column-start: 3;
+            }
+            &.stqrd--simple {
+                &::before, &::after {
+                    content: '"';
+                    color: var(--stqrd--color-textString)
+                }
+            }
+        }
+    }
+
+    .stqrd--callStack {
+        display: grid;
+        grid-template-columns: minmax(5em, 1fr) minmax(5em, auto);
+
+        font-family: var(--monoFontFamily);
+        font-size: smaller;
+        .stqrd--stackItem {
+            grid-column-start: 1;
+            grid-column-end: 3;
+
+            display: grid;
+            grid-template-columns: subgrid;
+
+            cursor: default;
+            white-space: nowrap;
+            &:hover {
+                background-color: rgb(from var(--stqrd--color-accent) r g b / 0.125);
+            }
+        }
+        .stqrd--cmd {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .stqrd--src {
+            opacity: 0.5;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            // min-width: 5em;
+            direction: rtl;
+        }
+    }
 }
