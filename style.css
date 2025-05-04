@@ -183,7 +183,26 @@ body {
 #stqrd--drawer-v2 .stqrd--filterPanel {
   display: flex;
   gap: 0.25em;
+  align-items: baseline;
   padding: 0 var(--drawerPadding);
+}
+#stqrd--drawer-v2 .stqrd--filterPanel .stqrd--toggles {
+  display: flex;
+  gap: 0.25em;
+}
+#stqrd--drawer-v2 .stqrd--filterPanel .stqrd--toggle {
+  cursor: pointer;
+  opacity: 0.25;
+}
+#stqrd--drawer-v2 .stqrd--filterPanel .stqrd--toggle:hover {
+  opacity: 1;
+}
+#stqrd--drawer-v2 .stqrd--filterPanel .stqrd--toggle.stqrd--isActive {
+  color: var(--stqrd--color-accent);
+  opacity: 0.75;
+}
+#stqrd--drawer-v2 .stqrd--filterPanel .stqrd--toggle.stqrd--isActive:hover {
+  opacity: 1;
 }
 #stqrd--drawer-v2 .stqrd--qrsList {
   flex: 1 1 auto;
@@ -199,6 +218,9 @@ body {
   inset: 0;
   opacity: 0.5;
   position: absolute;
+}
+#stqrd--drawer-v2 .stqrd--qrsItem.stqrd--isHidden {
+  display: none;
 }
 #stqrd--drawer-v2 .stqrd--qrsItem .stqrd--head {
   display: flex;
@@ -285,6 +307,9 @@ body {
 }
 #stqrd--drawer-v2 .stqrd--qrItem.stqrd--isDragTarget {
   border-bottom-color: var(--stqrd--color-accent);
+}
+#stqrd--drawer-v2 .stqrd--qrItem.stqrd--isHidden {
+  display: none;
 }
 #stqrd--drawer-v2 .stqrd--qrItem:hover {
   background-color: rgba(255, 255, 255, 0.125);

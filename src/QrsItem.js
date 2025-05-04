@@ -39,6 +39,9 @@ export class QrsItem {
     get isActiveChat() {
         return quickReplyApi.listChatSets().includes(this.qrs.name);
     }
+    get isActive() {
+        return this.isActiveGlobal || this.isActiveChat;
+    }
 
     get isOpen() {
         return !this.dom.qrList.classList.contains('stqrd--isCollapsed');
@@ -204,6 +207,12 @@ export class QrsItem {
     }
     unrender() {
         this.dom.root?.remove();
+    }
+    hide() {
+        this.dom.root?.classList.add('stqrd--isHidden');
+    }
+    unhide() {
+        this.dom.root?.classList.remove('stqrd--isHidden');
     }
 
     addQr(qr, idx = null) {

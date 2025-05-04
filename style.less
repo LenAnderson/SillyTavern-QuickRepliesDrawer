@@ -96,8 +96,29 @@ body { // colors
     .stqrd--filterPanel {
         display: flex;
         gap: 0.25em;
+        align-items: baseline;
 
         padding: 0 var(--drawerPadding);
+
+        .stqrd--toggles {
+            display: flex;
+            gap: 0.25em;
+
+        }
+        .stqrd--toggle {
+            cursor: pointer;
+            opacity: 0.25;
+            &:hover {
+                opacity: 1;
+            }
+            &.stqrd--isActive {
+                color: var(--stqrd--color-accent);
+                opacity: 0.75;
+                &:hover {
+                    opacity: 1;
+                }
+            }
+        }
     }
     .stqrd--qrsList {
         flex: 1 1 auto;
@@ -121,6 +142,9 @@ body { // colors
         }
     }
     .stqrd--qrsItem {
+        &.stqrd--isHidden {
+            display: none;
+        }
         .stqrd--head {
             display: flex;
             gap: 0.5em;
@@ -209,6 +233,9 @@ body { // colors
         }
         &.stqrd--isDragTarget {
             border-bottom-color: var(--stqrd--color-accent);
+        }
+        &.stqrd--isHidden {
+            display: none;
         }
         &:hover {
             background-color: rgb(255 255 255 / 0.125);

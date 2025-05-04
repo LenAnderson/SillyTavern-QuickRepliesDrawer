@@ -111,6 +111,12 @@ export class QrItem {
     unrender() {
         this.dom.qrItem.remove();
     }
+    hide() {
+        this.dom.qrItem?.classList.add('stqrd--isHidden');
+    }
+    unhide() {
+        this.dom.qrItem?.classList.remove('stqrd--isHidden');
+    }
 
 
     openEditor() {

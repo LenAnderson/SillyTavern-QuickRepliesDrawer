@@ -30,6 +30,17 @@ export class Browser {
         qr: undefined,
     };
 
+    filter = {
+        query: '',
+        options: {
+            'qrsItem.isActive': false,
+            'qrs.name': false,
+            'qr.label': true,
+            'qr.title': false,
+            'qr.message': false,
+        },
+    };
+
 
     eventSource = new EventEmitter();
 
@@ -96,7 +107,33 @@ export class Browser {
                         query.classList.add('text_pole');
                         query.type = 'search';
                         query.placeholder = 'Search QRs and Sets';
+                        query.addEventListener('input', ()=>{
+                            this.updateFilter('query', query.value.trim());
+                        });
                         filterPanel.append(query);
+                    }
+                    const toggleWrap = document.createElement('div'); {
+                        toggleWrap.classList.add('stqrd--toggles');
+                        const toggles = [
+                            { label:'Search Quick Reply Sets (names)', icon:'layer-group', value:'qrs.name' },
+                            { label:'Search Quick Replies (labels)', icon:'file-code', value:'qr.label' },
+                            { label:'Search Quick Reply contents (message / code)', icon:'align-left', value:'qr.message' },
+                            { label:'Only show active Quick Reply Sets (global or chat bound)', icon:'check-to-slot', value:'qrsItem.isActive' },
+                        ];
+                        for (const { label, icon, value } of toggles) {
+                            const toggle = document.createElement('div'); {
+                                toggle.classList.add('stqrd--toggle');
+                                toggle.classList.add('fa-solid', 'fa-fw', `fa-${icon}`);
+                                if (this.filter.options[value]) toggle.classList.add('stqrd--isActive');
+                                toggle.title = label;
+                                toggle.addEventListener('click', ()=>{
+                                    const is = toggle.classList.toggle('stqrd--isActive');
+                                    this.updateFilter(value, is);
+                                });
+                                toggleWrap.append(toggle);
+                            }
+                        }
+                        filterPanel.append(toggleWrap);
                     }
                     root.append(filterPanel);
                 }
@@ -209,5 +246,108 @@ export class Browser {
             this.addQrs(qrs);
         }
         this.dom.qrsList.classList.remove('stqrd--isLoading');
+    }
+
+
+    updateFilter(target, value) {
+        switch (target) {
+            case 'query': {
+                this.filter.query = value;
+                break;
+            }
+            default: {
+                this.filter.options[target] = value;
+                break;
+            }
+        }
+
+        const onlyActive = this.filter.options['qrsItem.isActive'];
+        let applyFilter = true;
+        /**@type {(()=>void)[]} */
+        let filterList;
+        const query = this.filter.query.toLowerCase();
+        if (!query.length && !onlyActive) {
+            applyFilter = false;
+        } else {
+            filterList = Object.entries(this.filter.options)
+                .filter(([target, include])=>include)
+                .map(([target])=>()=>{
+                    const [obj, prop] = target.split('.');
+                    switch (obj) {
+                        case 'qrs': {
+                            qrsList.push(...this.qrsItemList.filter((qrsItem)=>qrsItem.qrs[prop]?.toString().toLowerCase().includes(query.toLowerCase())));
+                            break;
+                        }
+                        case 'qr': {
+                            qrList.push(
+                                ...this.qrsItemList
+                                    .map((qrsItem)=>({
+                                        qrsItem,
+                                        qrItemList: qrsItem.qrItemList.filter((qrItem)=>qrItem.qr[prop]?.toLowerCase().includes(query))
+                                    }))
+                                    .filter(it=>it.qrItemList.length > 0)
+                                ,
+                            );
+                            break;
+                        }
+                    }
+                })
+            ;
+            applyFilter = filterList.length > 0 || onlyActive;
+        }
+        if (!applyFilter) {
+            for (const qrsItem of this.qrsItemList) {
+                qrsItem.unhide();
+                for (const qrItem of qrsItem.qrItemList) {
+                    qrItem.unhide();
+                }
+            }
+            return;
+        }
+
+        let qrsList = [];
+        let qrList = [];
+        for (const filter of filterList) {
+            filter();
+        }
+        qrsList = qrsList.filter((it,idx,list)=>list.indexOf(it) == idx);
+        for (const qrsItem of this.qrsItemList) {
+            if (!query.length) {
+                if (onlyActive) {
+                    if (qrsItem.isActive) {
+                        qrsItem.unhide();
+                        for (const qrItem of qrsItem.qrItemList) {
+                            qrItem.unhide();
+                        }
+                    } else {
+                        qrsItem.hide();
+                    }
+                } else {
+                    qrsItem.unhide();
+                }
+                continue;
+            }
+            if (qrsList.includes(qrsItem) && (!onlyActive || qrsItem.isActive)) {
+                qrsItem.unhide();
+                for (const qrItem of qrsItem.qrItemList) {
+                    qrItem.unhide();
+                }
+                continue;
+            }
+            const matches = qrList.filter(it=>it.qrsItem == qrsItem).map(it=>it.qrItemList).flat();
+            if (matches.length && (!onlyActive || qrsItem.isActive)) {
+                // qrsItem.open();
+                qrsItem.unhide();
+                for (const qrItem of qrsItem.qrItemList) {
+                    if (matches.includes(qrItem)) {
+                        qrItem.unhide();
+                    } else {
+                        qrItem.hide();
+                    }
+                }
+            } else {
+                qrsItem.hide();
+            }
+        }
     }
 }
