@@ -629,6 +629,7 @@ body {
 }
 .stqrd--editorPanel .stqrd--runResult {
   flex-direction: column;
+  border: 1px solid var(--stqrd--color-toastSuccess);
 }
 .stqrd--editorPanel .stqrd--runResult:is(.stqrd--hasResult *) {
   display: flex;
@@ -1028,7 +1029,7 @@ body {
 }
 .stqrd--SlashCommandDebugger .stqrd--scope {
   display: grid;
-  grid-template-columns: 0fr 1fr 1fr;
+  grid-template-columns: 0fr 0fr 1fr;
   column-gap: 0.5em;
   font-size: smaller;
 }

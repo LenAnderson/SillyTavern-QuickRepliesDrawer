@@ -52,6 +52,7 @@ export class QuickRepliesDrawer {
         if (!this.dom.drawer) {
             const drawer = document.createElement('div'); {
                 this.dom.drawer = drawer;
+                drawer.id = 'stqrd--qrDrawer';
                 drawer.classList.add('drawer');
                 const toggle = document.createElement('div'); {
                     this.dom.toggle = toggle;
@@ -60,7 +61,7 @@ export class QuickRepliesDrawer {
                         this.dom.icon = icon;
                         icon.classList.add('drawer-icon', 'closedIcon');
                         icon.classList.add('fa-solid', 'fa-fw', 'fa-code');
-                        icon.title = 'Quick Replies (drwr-v2)';
+                        icon.title = 'Quick Replies';
                         toggle.append(icon);
                     }
                     drawer.append(toggle);
@@ -80,16 +81,16 @@ export class QuickRepliesDrawer {
                                 const title = document.createElement('h3'); {
                                     title.classList.add('stqrd--drawerTitle');
                                     title.classList.add('margin0', 'flex1', 'flex-container', 'alignItemsBaseline');
-                                    title.textContent = 'Quick Replies (drwr-v2)';
+                                    title.textContent = 'Quick Replies';
                                     headWrap.append(title);
                                 }
-                                const showQrBar = document.createElement('div'); {
-                                    showQrBar.classList.add('stqrd--showQrBarToggle');
-                                    showQrBar.classList.add('menu_button');
-                                    showQrBar.classList.add('fa-solid', 'fa-fw', 'fa-chevron-up');
-                                    showQrBar.addEventListener('click', ()=>content.classList.toggle('stqrd--showQrBar'));
-                                    headWrap.append(showQrBar);
-                                }
+                                // const showQrBar = document.createElement('div'); {
+                                //     showQrBar.classList.add('stqrd--showQrBarToggle');
+                                //     showQrBar.classList.add('menu_button');
+                                //     showQrBar.classList.add('fa-solid', 'fa-fw', 'fa-chevron-up');
+                                //     showQrBar.addEventListener('click', ()=>content.classList.toggle('stqrd--showQrBar'));
+                                //     headWrap.append(showQrBar);
+                                // }
                                 panel.append(headWrap);
                             }
                             const browser = new Browser(); {
