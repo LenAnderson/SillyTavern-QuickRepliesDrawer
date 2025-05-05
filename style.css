@@ -960,16 +960,19 @@ body {
 }
 .stqrd--SlashCommandDebugger {
   flex: 1 1 auto;
-  overflow-x: auto;
-  overflow-y: scroll;
+  display: flex;
+  flex-direction: column;
 }
 .stqrd--SlashCommandDebugger .stqrd--controls {
+  flex: 0 0 auto;
   display: flex;
   gap: 0.5em;
   align-items: center;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
   filter: saturate(0);
-  height: 1.75em;
+  height: 2.75em;
   opacity: 0.5;
+  padding: 0.5em;
   transition: 200ms;
   pointer-events: none;
 }
@@ -1008,6 +1011,11 @@ body {
 .stqrd--SlashCommandDebugger .stqrd--controls .stqrd--button:hover {
   background-color: rgba(255, 255, 255, 0.125);
   opacity: 1;
+}
+.stqrd--SlashCommandDebugger .stqrd--blockWrap {
+  flex: 1 1 auto;
+  overflow-x: auto;
+  overflow-y: scroll;
 }
 .stqrd--SlashCommandDebugger .stqrd--block {
   padding: 0.5em;

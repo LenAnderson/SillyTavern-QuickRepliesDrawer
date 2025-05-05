@@ -80,87 +80,86 @@ export class SlashCommandDebugger {
                 root.classList.add('stqrd--SlashCommandDebugger');
                 root.style.setProperty('--width', `${localStorage.getItem('stqrd--debugger-panelWidth')}px`);
                 { // controls
-                    const block = document.createElement('div'); {
-                        block.classList.add('stqrd--block');
-                        const blockContent = document.createElement('div'); {
-                            blockContent.classList.add('stqrd--blockContent');
-                            blockContent.classList.add('stqrd--controls');
-                            const resume = document.createElement('div'); {
-                                resume.classList.add('stqrd--button');
-                                resume.classList.add('stqrd--resume');
-                                resume.classList.add('menu_button');
-                                resume.title = 'Resume';
-                                resume.addEventListener('click', ()=>{
-                                    this.qr.debugController?.resume();
-                                });
-                                blockContent.append(resume);
-                            }
-                            const stepOver = document.createElement('div'); {
-                                stepOver.classList.add('stqrd--button');
-                                stepOver.classList.add('stqrd--stepOver');
-                                stepOver.classList.add('menu_button');
-                                stepOver.title = 'Step over';
-                                stepOver.addEventListener('click', ()=>{
-                                    this.qr.debugController?.step();
-                                });
-                                blockContent.append(stepOver);
-                            }
-                            const stepInto = document.createElement('div'); {
-                                stepInto.classList.add('stqrd--button');
-                                stepInto.classList.add('stqrd--stepInto');
-                                stepInto.classList.add('menu_button');
-                                stepInto.title = 'Step into';
-                                stepInto.addEventListener('click', ()=>{
-                                    this.qr.debugController?.stepInto();
-                                });
-                                blockContent.append(stepInto);
-                            }
-                            const stepOut = document.createElement('div'); {
-                                stepOut.classList.add('stqrd--button');
-                                stepOut.classList.add('stqrd--stepOut');
-                                stepOut.classList.add('menu_button');
-                                stepOut.title = 'Step out';
-                                stepOut.addEventListener('click', ()=>{
-                                    this.qr.debugController?.stepOut();
-                                });
-                                blockContent.append(stepOut);
-                            }
-                            block.append(blockContent);
+                    const blockContent = document.createElement('div'); {
+                        blockContent.classList.add('stqrd--controls');
+                        const resume = document.createElement('div'); {
+                            resume.classList.add('stqrd--button');
+                            resume.classList.add('stqrd--resume');
+                            resume.classList.add('menu_button');
+                            resume.title = 'Resume';
+                            resume.addEventListener('click', ()=>{
+                                this.qr.debugController?.resume();
+                            });
+                            blockContent.append(resume);
                         }
-                        root.append(block);
+                        const stepOver = document.createElement('div'); {
+                            stepOver.classList.add('stqrd--button');
+                            stepOver.classList.add('stqrd--stepOver');
+                            stepOver.classList.add('menu_button');
+                            stepOver.title = 'Step over';
+                            stepOver.addEventListener('click', ()=>{
+                                this.qr.debugController?.step();
+                            });
+                            blockContent.append(stepOver);
+                        }
+                        const stepInto = document.createElement('div'); {
+                            stepInto.classList.add('stqrd--button');
+                            stepInto.classList.add('stqrd--stepInto');
+                            stepInto.classList.add('menu_button');
+                            stepInto.title = 'Step into';
+                            stepInto.addEventListener('click', ()=>{
+                                this.qr.debugController?.stepInto();
+                            });
+                            blockContent.append(stepInto);
+                        }
+                        const stepOut = document.createElement('div'); {
+                            stepOut.classList.add('stqrd--button');
+                            stepOut.classList.add('stqrd--stepOut');
+                            stepOut.classList.add('menu_button');
+                            stepOut.title = 'Step out';
+                            stepOut.addEventListener('click', ()=>{
+                                this.qr.debugController?.stepOut();
+                            });
+                            blockContent.append(stepOut);
+                        }
+                        root.append(blockContent);
                     }
                 }
-                { // scope
-                    const block = document.createElement('div'); {
-                        block.classList.add('stqrd--block');
-                        const title = document.createElement('h4'); {
-                            title.textContent = 'Scope';
-                            block.append(title);
+                const blockWrap = document.createElement('div'); {
+                    blockWrap.classList.add('stqrd--blockWrap');
+                    { // scope
+                        const block = document.createElement('div'); {
+                            block.classList.add('stqrd--block');
+                            const title = document.createElement('h4'); {
+                                title.textContent = 'Scope';
+                                block.append(title);
+                            }
+                            const blockContent = document.createElement('div'); {
+                                this.dom.scope = blockContent;
+                                blockContent.classList.add('stqrd--blockContent');
+                                blockContent.classList.add('stqrd--scope');
+                                block.append(blockContent);
+                            }
+                            blockWrap.append(block);
                         }
-                        const blockContent = document.createElement('div'); {
-                            this.dom.scope = blockContent;
-                            blockContent.classList.add('stqrd--blockContent');
-                            blockContent.classList.add('stqrd--scope');
-                            block.append(blockContent);
-                        }
-                        root.append(block);
                     }
-                }
-                { // call stack
-                    const block = document.createElement('div'); {
-                        block.classList.add('stqrd--block');
-                        const title = document.createElement('h4'); {
-                            title.textContent = 'Call Stack';
-                            block.append(title);
+                    { // call stack
+                        const block = document.createElement('div'); {
+                            block.classList.add('stqrd--block');
+                            const title = document.createElement('h4'); {
+                                title.textContent = 'Call Stack';
+                                block.append(title);
+                            }
+                            const blockContent = document.createElement('div'); {
+                                this.dom.callStack = blockContent;
+                                blockContent.classList.add('stqrd--blockContent');
+                                blockContent.classList.add('stqrd--callStack');
+                                block.append(blockContent);
+                            }
+                            blockWrap.append(block);
                         }
-                        const blockContent = document.createElement('div'); {
-                            this.dom.callStack = blockContent;
-                            blockContent.classList.add('stqrd--blockContent');
-                            blockContent.classList.add('stqrd--callStack');
-                            block.append(blockContent);
-                        }
-                        root.append(block);
                     }
+                    root.append(blockWrap);
                 }
             }
         }
