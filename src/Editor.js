@@ -551,6 +551,13 @@ export class Editor {
                                 playPause.classList.add('stqrd--button');
                                 playPause.classList.add('stqrd--playPause');
                                 playPause.title = 'Pause / resume script execution';
+                                playPause.addEventListener('click', ()=>{
+                                    if (this.qr.abortController.signal.paused) {
+                                        this.qr.abortController.continue();
+                                    } else {
+                                        this.qr.abortController.pause();
+                                    }
+                                });
                                 const icon1 = document.createElement('div'); {
                                     icon1.classList.add('stqrd--icon1');
                                     icon1.classList.add('fa-solid', 'fa-play');
@@ -568,6 +575,9 @@ export class Editor {
                                 stop.classList.add('stqrd--stop');
                                 stop.classList.add('fa-solid', 'fa-stop');
                                 stop.title = 'Stop script execution';
+                                stop.addEventListener('click', ()=>{
+                                    this.qr.abortController.abort();
+                                });
                                 playbackControls.append(stop);
                             }
                             playbackContainer.append(playbackControls);
