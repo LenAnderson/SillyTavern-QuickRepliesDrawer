@@ -67,6 +67,7 @@ export class QrItem {
                     this.eventSource.emit(QrItem.EVENT.DRAG_START, this);
                 });
                 qrItem.addEventListener('dragover', (evt)=>{
+                    evt.preventDefault();
                     qrItem.classList.add('stqrd--isDragTarget');
                     evt.dataTransfer.dropEffect = evt.ctrlKey ? 'copy' : 'move';
                 });

@@ -98,6 +98,7 @@ export class QrsItem {
                 head.classList.add('stqrd--head');
                 let dragTargetTimer;
                 head.addEventListener('dragover', (evt)=>{
+                    evt.preventDefault();
                     head.classList.add('stqrd--isDragTarget');
                     evt.dataTransfer.dropEffect = evt.ctrlKey ? 'copy' : 'move';
                     if (!this.isOpen && !dragTargetTimer) {
