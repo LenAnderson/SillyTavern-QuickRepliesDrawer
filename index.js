@@ -1,40 +1,10 @@
-import { getRequestHeaders } from '../../../../script.js';
 import { extension_settings } from '../../../extensions.js';
 import { getCheckboxList } from './src/helper/autoExecHelper.js';
 import { hookQuickReply } from './src/helper/hookQuickReply.js';
 import { applyTweaks } from './src/helper/performance.js';
 import { QuickRepliesDrawer } from './src/QuickRepliesDrawer.js';
 
-const watchCss = async()=>{
-    // watch CSS for changes
-    const style = document.createElement('style');
-    document.body.append(style);
-    const path = [
-        '~',
-        'extensions',
-        'SillyTavern-QuickRepliesDrawer',
-        'style.css',
-    ].join('/');
-    while (true) {
-        const watchResponse = await fetch('/api/plugins/files/watch', {
-            method: 'POST',
-            headers: getRequestHeaders(),
-            body: JSON.stringify({
-                path,
-                interval: 500,
-            }),
-        });
-        if (!watchResponse.ok) {
-            alert('something went wrong');
-            break;
-        }
-        style.innerHTML = await watchResponse.text();
-        document.querySelector('#third-party_SillyTavern-QuickRepliesDrawer-css')?.remove();
-    }
-};
-
 const init = ()=>{
-    watchCss();
     applyTweaks();
     hookQuickReply();
     getCheckboxList();
