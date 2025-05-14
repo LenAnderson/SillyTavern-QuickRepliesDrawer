@@ -19,6 +19,9 @@
   margin-left: 0.25em;
   padding: 0 1.5em;
 }
+.jsonView--item {
+  align-items: start;
+}
 .jsonView--item:has(> .jsonView--isCollapsed) {
   display: flex;
   gap: 0.25em;
