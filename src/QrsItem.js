@@ -82,6 +82,7 @@ export class QrsItem {
         qrs.eventSource.on(QRS_EVENT.PROP_CHANGED, (qrs, evt)=>this.handlePropChange(evt));
         qrs.eventSource.on(QRS_EVENT.GLOBAL_STATE, (qrs)=>this.handleGlobalStateChange());
         qrs.eventSource.on(QRS_EVENT.CHAT_STATE, (qrs)=>this.handleChatStateChange());
+        qrs.eventSource.on(QRS_EVENT.QR_CREATE, (qrs, { qr })=>this.addQr(qr));
         globalEventSource.on(event_types.CHAT_CHANGED, ()=>this.handleChatStateChange());
         globalEventSource.once(event_types.APP_READY, ()=>this.handleChatStateChange());
     }

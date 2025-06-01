@@ -33,6 +33,8 @@ export const QRS_EVENT = {
     GLOBAL_STATE: 'global_state',
     /** ... */
     CHAT_STATE: 'chat_state',
+    /** ... */
+    QR_CREATE: 'qr_create',
 };
 /** @readonly */
 /** @enum {string} */
@@ -117,6 +119,7 @@ const migrateQuickReplySet = (qrs)=>{
     qrs.qrList = createObservableArray(qrs.qrList, ()=>{
         for (const qr of qrs.qrList.filter(it=>!it.isObservable)) {
             migrateQuickReplyProperties(qr);
+            qrs.eventSource.emit(QRS_EVENT.QR_CREATE, qrs, { qr });
         }
     });
     for (const prop of ['name']) {
