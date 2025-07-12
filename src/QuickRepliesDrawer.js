@@ -68,7 +68,7 @@ export class QuickRepliesDrawer {
                 }
                 const content = document.createElement('div'); {
                     content.id = 'stqrd--drawer-v2';
-                    content.classList.add('drawer-content');
+                    content.classList.add('drawer-content', 'closedDrawer');
                     const layout = document.createElement('div'); {
                         layout.classList.add('stqrd--layout');
                         layout.classList.add('stqrd--showBrowser');
