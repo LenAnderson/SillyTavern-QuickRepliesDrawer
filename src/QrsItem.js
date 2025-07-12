@@ -222,7 +222,7 @@ export class QrsItem {
         if (!qrItem) {
             qrItem = new QrItem(qr);
             this.qrItemList.push(qrItem);
-            qrItem.eventSource.on(QrItem.EVENT.EDITOR, (src)=>this.eventSource.emit(QrsItem.EVENT.QR_EDITOR, this, src));
+            qrItem.eventSource.on(QrItem.EVENT.EDITOR, (src, options)=>this.eventSource.emit(QrsItem.EVENT.QR_EDITOR, this, src, options));
             qrItem.eventSource.on(QrItem.EVENT.DELETE, (src)=>{
                 const idx = this.qrItemList.indexOf(src);
                 if (idx > -1) {

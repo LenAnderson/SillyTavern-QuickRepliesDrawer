@@ -1,4 +1,5 @@
 import { EventEmitter } from '../../../../../lib/eventemitter.js';
+import { Popup, POPUP_TYPE } from '../../../../popup.js';
 import { setSlashCommandAutoComplete } from '../../../../slash-commands.js';
 import { SlashCommandAbortController } from '../../../../slash-commands/SlashCommandAbortController.js';
 import { SlashCommandDebugController } from '../../../../slash-commands/SlashCommandDebugController.js';
@@ -45,8 +46,16 @@ export class Editor {
 
     /**@type {boolean} */ isDebugging = false;
 
+    get isPopout() {
+        return this.dom.root.parentElement == document.body;
+    }
+
 
     eventSource = new EventEmitter();
+
+
+    /**@type {Popup} */
+    popup;
 
 
     dom = {
@@ -167,7 +176,8 @@ export class Editor {
                             popout.classList.add('fa-solid', 'fa-fw', 'fa-up-right-from-square');
                             popout.title = 'Pop out editor';
                             popout.addEventListener('click', ()=>{
-                                if (this.dom.root.parentElement == document.body) {
+                                this.closePopup();
+                                if (this.isPopout) {
                                     this.eventSource.emit(Editor.EVENT.POPIN);
                                 } else {
                                     this.eventSource.emit(Editor.EVENT.POPOUT);
@@ -181,6 +191,7 @@ export class Editor {
                             close.classList.add('fa-solid', 'fa-fw', 'fa-times');
                             close.title = 'Close editor';
                             close.addEventListener('click', ()=>{
+                                this.closePopup();
                                 this.eventSource.emit(Editor.EVENT.CLOSE, this);
                                 this.unrender();
                             });
@@ -829,8 +840,16 @@ export class Editor {
     }
 
     close() {
+        this.closePopup();
         this.unrender();
         this.eventSource.emit(Editor.EVENT.CLOSE);
+    }
+
+    closePopup() {
+        if (this.popup) {
+            this.popup.completeAffirmative();
+            this.popup = null;
+        }
     }
 
     updateIcon() {
@@ -841,6 +860,18 @@ export class Editor {
         } else {
             this.dom.options.icon.classList.add('stqrd--noIcon');
         }
+    }
+
+    moveIntoPopup() {
+        const dlg = new Popup(this.dom.root, POPUP_TYPE.TEXT, null, {
+            okButton: false,
+            wide: true,
+            wider: true,
+            large: true,
+        });
+        this.popup = dlg;
+        dlg.onClose = ()=>this.eventSource.emit(Editor.EVENT.POPIN);
+        dlg.show();
     }
 
 

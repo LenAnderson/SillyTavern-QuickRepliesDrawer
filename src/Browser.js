@@ -172,8 +172,8 @@ export class Browser {
                 this.qrsItemList.splice(idx, 1);
             }
         });
-        qrsItem.eventSource.on(QrsItem.EVENT.QR_EDITOR, (src, qrItem)=>{
-            this.eventSource.emit(Browser.EVENT.QR_EDITOR, src, qrItem);
+        qrsItem.eventSource.on(QrsItem.EVENT.QR_EDITOR, (src, qrItem, options)=>{
+            this.eventSource.emit(Browser.EVENT.QR_EDITOR, src, qrItem, options);
             this.currentQrsItem?.setActive(false);
             this.currentQrItem?.setActive(false);
             this.currentQrItem = qrItem;

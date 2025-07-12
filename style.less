@@ -960,6 +960,22 @@ body { // colors
 
 
 
+.popup:has(.stqrd--editorPanel) {
+    padding: 0;
+    text-align: left;
+    width: 90vw;
+    .popup-content {
+        margin: 0;
+        padding: 0;
+    }
+    .popup-controls {
+        display: none;
+    }
+}
+
+
+
+
 // context menu
 .stqrd--blocker {
 	position: fixed;
@@ -985,6 +1001,7 @@ body { // colors
 		display: flex;
 		flex-direction: column;
 		background-color: var(--stqrd--color-bgSecondary, var(--SmartThemeBlurTintColor));
+        backdrop-filter: blur(calc(1px * var(--blurStrength)));
 
 		.stqrd--item {
 			opacity: 0.5;

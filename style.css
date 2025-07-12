@@ -23,6 +23,9 @@
   margin-left: 0.25em;
   padding: 0 1.5em;
 }
+.jsonView--item {
+  align-items: start;
+}
 .jsonView--item:has(> .jsonView--isCollapsed) {
   display: flex;
   gap: 0.25em;
@@ -911,6 +914,18 @@ body {
 .stqrd--resizeHandle:hover {
   background-color: var(--stqrd--color-accent);
 }
+.popup:has(.stqrd--editorPanel) {
+  padding: 0;
+  text-align: left;
+  width: 90vw;
+}
+.popup:has(.stqrd--editorPanel) .popup-content {
+  margin: 0;
+  padding: 0;
+}
+.popup:has(.stqrd--editorPanel) .popup-controls {
+  display: none;
+}
 .stqrd--blocker {
   position: fixed;
   inset: 0;
@@ -934,6 +949,7 @@ body {
   display: flex;
   flex-direction: column;
   background-color: var(--stqrd--color-bgSecondary, var(--SmartThemeBlurTintColor));
+  backdrop-filter: blur(calc(1px * var(--blurStrength)));
 }
 .stqrd--blocker .stqrd--menu .stqrd--item {
   opacity: 0.5;

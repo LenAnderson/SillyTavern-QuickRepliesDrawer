@@ -321,9 +321,9 @@ export const hookQuickReply = ()=>{
     const originalShowEditor = Object.getOwnPropertyDescriptor(QuickReply.prototype, 'showEditor');
     Object.defineProperty(QuickReply.prototype, 'showEditor', {
         /**@this {ObservableQuickReply} */
-        value: function(forceVanilla = false) {
+        value: function(forceVanilla = false, options = { inPopup:false }) {
             if (forceVanilla) return originalShowEditor.value.call(this);
-            this.eventSource.emit(QR_EVENT.EDITOR, this);
+            this.eventSource.emit(QR_EVENT.EDITOR, this, options);
         },
         configurable: true,
         enumerable: true,

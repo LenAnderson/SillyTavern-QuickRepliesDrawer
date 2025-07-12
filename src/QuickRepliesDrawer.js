@@ -95,7 +95,7 @@ export class QuickRepliesDrawer {
                             }
                             const browser = new Browser(); {
                                 this.browser = browser;
-                                browser.eventSource.on(Browser.EVENT.QR_EDITOR, (qrsItem, qrItem)=>this.openEditor(qrItem.qr));
+                                browser.eventSource.on(Browser.EVENT.QR_EDITOR, (qrsItem, qrItem, options)=>this.openEditor(qrItem.qr, options));
                                 browser.eventSource.on(Browser.EVENT.QR_SET_SETTINGS, (qrs)=>this.openQrsSettings(qrs));
                                 panel.append(browser.render());
                             }
@@ -201,8 +201,9 @@ export class QuickRepliesDrawer {
 
     /**
      * @param {QuickReply} qr
+     * @param {{inPopup:boolean}} options
      */
-    async openEditor(qr) {
+    async openEditor(qr, options) {
         this.closeQrsSettings();
         this.closeEditor();
         const editor = new Editor(qr);
@@ -223,6 +224,9 @@ export class QuickRepliesDrawer {
             this.dom.body.append(await editor.render());
         } else {
             document.body.append(await editor.render());
+        }
+        if (options?.inPopup) {
+            editor.moveIntoPopup();
         }
     }
     closeEditor() {

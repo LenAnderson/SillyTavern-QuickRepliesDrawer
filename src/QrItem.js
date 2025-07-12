@@ -48,7 +48,7 @@ export class QrItem {
     constructor(qr) {
         this.qr = qr;
         qr.eventSource.on(QR_EVENT.PROP_CHANGED, (qr, evt)=>this.handlePropChange(evt));
-        qr.eventSource.on(QR_EVENT.EDITOR, (qr)=>this.openEditor());
+        qr.eventSource.on(QR_EVENT.EDITOR, (qr, options)=>this.openEditor(options));
         qr.eventSource.on(QR_EVENT.DELETE, (qr)=>this.delete());
     }
 
@@ -120,8 +120,8 @@ export class QrItem {
     }
 
 
-    openEditor() {
-        this.eventSource.emit(QrItem.EVENT.EDITOR, this);
+    openEditor(options) {
+        this.eventSource.emit(QrItem.EVENT.EDITOR, this, options);
     }
     setActive(value) {
         this.dom.qrItem.classList[value ? 'add' : 'remove']('stqrd--isActive');
